@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # My apps
+    'accounts',
+    'documents',
+    'projects',
+    'todos'
 ]
 
 MIDDLEWARE = [
@@ -54,7 +60,7 @@ ROOT_URLCONF = 'almost_fs.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Rome'
 
 USE_I18N = True
 
@@ -115,3 +121,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# As well as the app statistics, check the global statistics in the project root.
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# It tells Django to use my custom User class instead of the default User class.
+AUTH_USER_MODEL = 'accounts.User'
+
+# LOGIN_REDIRECT_URL = '/accounts/profile/'
+# LOGIN_URL = '/accounts/login/'
+# LOGOUT_REDIRECT_URL = None
+
+LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+# It suppresses the warning that asks us to specify a data type for automatically
+# generated primary keys.
+# The BigAutoField type is a 64-bit integer.
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
