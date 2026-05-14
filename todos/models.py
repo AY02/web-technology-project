@@ -9,8 +9,10 @@ class ToDoList(models.Model):
   )
   title = models.CharField(max_length=128)
   creation_date = models.DateTimeField(auto_now_add=True)
+
   def __str__(self):
     return f"To-Do: {self.title} (in: {self.project_parent.title})"
+
 
 class ToDoEntry(models.Model):
   todo = models.ForeignKey(
