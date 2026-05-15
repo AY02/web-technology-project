@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - AlmostFS{% endblock %}
+
+{% block content %}
+  <h2>Your Profile</h2>
+  <p><b>Username:</b> {{ user.username }}</p>
+  <p><b>Email:</b> {{ user.email|default:"Not provided" }}</p>
+  <p><b>Date of registration:</b> {{ user.date_joined|date:"d/m/Y" }}</p>
+{% endblock %}
