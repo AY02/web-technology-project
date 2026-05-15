@@ -10,7 +10,7 @@
     <nav>
       <h2>AlmostFS</h2>
       {% if user.is_authenticated %}
-        <span>Welcome, {{ user.username }}</span>
+        <p>Welcome, {{ user.username }}</p>
         <form action="{% url 'logout' %}" method="post">
           {% csrf_token %}
           <button type="submit">Logout</button>
