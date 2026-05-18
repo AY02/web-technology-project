@@ -47,6 +47,8 @@ class ProjectPermission(models.Model):
     ('coll', 'Collaborator'),
   ]
 
+  pk = models.CompositePrimaryKey('user', 'project')
+
   user = models.ForeignKey(
     settings.AUTH_USER_MODEL,
     on_delete=models.CASCADE,
@@ -61,8 +63,3 @@ class ProjectPermission(models.Model):
     max_length=4,
     choices=ROLE_CHOICES
   )
-
-  class Meta:
-    # There cannot be two entries with the same pair (user, project); in other words,
-    # a user cannot hold more than one role on the same project.
-    unique_together = ('user', 'project')
