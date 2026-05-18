@@ -19,12 +19,13 @@ def bfs(parent):
   queue = [parent]
   while queue:
     children = Project.objects.filter(parent_id__in=queue).values_list(
-      'id',
+      "id",
       flat=True
     )
     descendants.extend(children)
     queue = children
   return descendants
+
 
 # The receiver listens for the post_save signal sent by the User model.
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -37,9 +38,9 @@ def create_root_project(sender, instance, created, **kwargs):
   if created:
     Project.objects.create(
       owner=instance,
-      title='Root',
+      title="Root",
       parent=None, # A root project has no parents.
-      visibility='priv' # By default, the root project is private.
+      visibility="priv" # By default, the root project is private.
     )
 
 
