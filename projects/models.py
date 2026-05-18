@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 class Project(models.Model):
@@ -93,6 +94,17 @@ class ProjectPermission(models.Model):
     choices=ROLE_CHOICES
   )
   
+  def clean(self):
+    """
+    Extended validation logic.
+    The owner cannot grant permissions to himself within its project.
+    """
+    super().clean()
+    if self.project.owner == self.user:
+      raise ValidationError(
+        "A project owner cannot have explicit permissions on its own project."
+      )
+
   class Meta:
     constraints = [
       # Uniqueness of the (user, project) pair.
