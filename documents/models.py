@@ -15,6 +15,21 @@ class Document(models.Model):
   # It sets the time at which the entry was updated.
   last_updated_date = models.DateTimeField(auto_now=True)
 
+  def is_owner(self, user):
+    return self.project_parent.is_owner(user)
+
+  def can_propose_edit(self, user):
+    """
+    A user can only propose an edit to a document if it is a collaborator to the
+    parent project.
+    """
+    project = self.project_parent
+    # The owner does not need to suggest changes, but can edit the document directly.
+    if project.is_owner(user):
+      return False
+    role = project.get_user_role(user)
+    return role == "coll"
+
   def __str__(self):
     return f"Doc: {self.title} (in: {self.project_parent.title})"
 
@@ -47,18 +62,29 @@ class PendingEdit(models.Model):
   )
   creation_date = models.DateTimeField(auto_now_add=True)
 
-  @staticmethod
-  def can_user_propose_edit(user, document):
+  def accept(self):
     """
-    A user can only propose an edit to a document if it is a collaborator to the
-    parent project.
+    Applies the proposed changes to the original document and updates the status.
+    This should be called only by the project owner.
     """
-    project = document.project_parent
-    # The owner does not need to suggest changes, but can edit the document directly.
-    if project.is_owner(user):
-      return False
-    role = project.get_user_role(user)
-    return role == "coll"
+    if self.state != "pen":
+      return # Prevent re-accepting or accepting rejected edits
+
+    doc = self.document
+    doc.title = self.modified_title
+    doc.content = self.modified_content
+    doc.save()
+
+    self.state = 'acc'
+    self.save()
+
+  def reject(self):
+    """
+    Marks the proposal as rejected. No changes are applied to the document.
+    """
+    if self.state == "pen":
+      self.state = 'rej'
+      self.save()
 
   def clean(self):
     super().clean()
