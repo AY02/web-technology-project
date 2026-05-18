@@ -25,6 +25,7 @@ class Comment(models.Model):
   creation_date = models.DateTimeField(auto_now_add=True)
   last_updated_date = models.DateTimeField(auto_now=True)
 
+  @staticmethod
   def can_user_comment_on_project(user, project):
     if project.is_owner(user):
       return True
@@ -37,4 +38,4 @@ class Comment(models.Model):
 
   def __str__(self):
     author = self.user.username if self.user else "User deleted"
-    return f"Comment of [{author}] {self.title} (Project: {self.project.title})"
+    return f"Comment of [{author}] {self.title[:20]} (Project: {self.project.title})"
