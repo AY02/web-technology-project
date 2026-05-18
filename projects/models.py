@@ -55,24 +55,35 @@ class Project(models.Model):
 
 class ProjectPermission(models.Model):
   ROLE_CHOICES = [
-    ('view', 'Viewer'),
-    ('comm', 'Commentator'),
-    ('coll', 'Collaborator'),
+    ("view", "Viewer"),
+    ("comm", "Commentator"),
+    ("coll", "Collaborator"),
   ]
-
-  pk = models.CompositePrimaryKey('user', 'project')
 
   user = models.ForeignKey(
     settings.AUTH_USER_MODEL,
     on_delete=models.CASCADE,
-    related_name='project_permissions'
+    related_name="project_permissions"
   )
   project = models.ForeignKey(
     Project,
     on_delete=models.CASCADE,
-    related_name='permissions'
+    related_name="user_permissions"
   )
   role = models.CharField(
     max_length=4,
     choices=ROLE_CHOICES
   )
+  
+  class Meta:
+    constraints = [
+      # Uniqueness of the (user, project) pair.
+      models.UniqueConstraint(
+        fields=["user", "project"],
+        name="unique_user_project_permission"
+      )
+    ]
+
+  def __str__(self):
+    # self.get_role_display(): view ==> Viewer
+    return f"{self.user.username} - {self.get_role_display()} on {self.project.title}"
