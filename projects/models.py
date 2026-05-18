@@ -63,7 +63,8 @@ class Project(models.Model):
     """
     A sub-project automatically inherits the owner from its parent.
     """
-    self.owner = self.parent.owner
+    if self.parent:
+      self.owner = self.parent.owner
     super().save(*args, **kwargs)
 
   def __str__(self):
