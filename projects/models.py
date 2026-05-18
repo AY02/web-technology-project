@@ -36,6 +36,19 @@ class Project(models.Model):
   # Time format: YYYY-MM-DD HH:MM:SS
   creation_date = models.DateTimeField(auto_now_add=True)
 
+  def get_user_role(self, user):
+    """
+    Calculate a user's role for this project, traversing the project tree back to the
+    root if necessary. Returns: "coll", "comm", "view", or None.
+    """
+    curr_project = self
+    while curr_project is not None:
+      permission = curr_project.permissions.filter(user=user).first()
+      if permission:
+        return permission.role
+      curr_project = curr_project.parent
+    return None
+
   def __str__(self):
     return f"Project {self.id} (Title: {self.title}) (Owner: {self.owner.username})"
 
