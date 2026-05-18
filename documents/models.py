@@ -74,4 +74,5 @@ class PendingEdit(models.Model):
 
   def __str__(self):
     # get_state_display() converts the value of state to its associated label.
-    return f"Edit of {self.collaborator.username} on '{self.document.title}' [{self.get_state_display()}]"
+    collaborator = self.collaborator.username if self.collaborator else "User deleted"
+    return f"Edit of {collaborator} on '{self.document.title}' [{self.get_state_display()}]"
