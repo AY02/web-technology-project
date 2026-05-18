@@ -24,7 +24,8 @@ class Project(models.Model):
   owner = models.ForeignKey(
     settings.AUTH_USER_MODEL,
     on_delete=models.CASCADE,
-    related_name="owned_projects"
+    related_name="owned_projects",
+    blank=True
   )
   title = models.CharField(max_length=128)
   visibility = models.CharField(
@@ -57,6 +58,13 @@ class Project(models.Model):
         return permission.role
       curr_project = curr_project.parent
     return None
+
+  def save(self, *args, **kwargs):
+    """
+    A sub-project automatically inherits the owner from its parent.
+    """
+    self.owner = self.parent.owner
+    super().save(*args, **kwargs)
 
   def __str__(self):
     return f"Project {self.id} (Title: {self.title}) (Owner: {self.owner.username})"
