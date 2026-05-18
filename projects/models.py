@@ -5,36 +5,45 @@ from django.conf import settings
 class Project(models.Model):
   # (value, label)
   VISIBILITY_CHOICES = [
-    ('pub', 'Public'),
-    ('priv', 'Private'),
+    ("pub", "Public"),
+    ("priv", "Private"),
   ]
 
   # The parent field is what gives projects a tree structure.
   parent = models.ForeignKey(
-    'self', # A project can have another project as its parent
+    "self", # A project can have another project as its parent.
     on_delete=models.CASCADE, # Removing a parent node results in the recursive
                               # removal of the entire subtree rooted at that parent
                               # node.
     null=True, # If it is NULL, then it is a root project.
     blank=True, # It is not required as a field in Django forms.
-    related_name='subprojects' # It renames the attribute of a parent’s children from
-                               # 'project_set' to subprojects, which is semantically
-                               # more appropriate
+    related_name="subprojects" # It renames the attribute of a parent's children from
+                               # "project_set" to subprojects, which is semantically
+                               # more appropriate.
   )
   owner = models.ForeignKey(
     settings.AUTH_USER_MODEL,
     on_delete=models.CASCADE,
-    related_name='owned_projects'
+    related_name="owned_projects"
   )
   title = models.CharField(max_length=128)
   visibility = models.CharField(
     max_length=4,
     choices=VISIBILITY_CHOICES,
-    default='priv' # By default, all projects are private.
+    default="priv" # By default, all projects are private.
   )
   # It sets the time at which the entry was created and added to the model.
   # Time format: YYYY-MM-DD HH:MM:SS
   creation_date = models.DateTimeField(auto_now_add=True)
+
+  def is_owner(self, user):
+    return self.owner == user
+
+  def is_public(self):
+    return self.visibility == "pub"
+
+  def is_private(self):
+    return self.visibility == "priv"
 
   def get_user_role(self, user):
     """
@@ -43,7 +52,7 @@ class Project(models.Model):
     """
     curr_project = self
     while curr_project is not None:
-      permission = curr_project.permissions.filter(user=user).first()
+      permission = curr_project.user_permissions.filter(user=user).first()
       if permission:
         return permission.role
       curr_project = curr_project.parent
