@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 
 
 class Document(models.Model):
@@ -27,7 +28,9 @@ class PendingEdit(models.Model):
 
   collaborator = models.ForeignKey(
     settings.AUTH_USER_MODEL,
-    on_delete=models.CASCADE,
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
     related_name='proposed_edits'
   )
   document = models.ForeignKey(
@@ -43,6 +46,31 @@ class PendingEdit(models.Model):
     default='pen' # By default, every proposed change is marked as pending.
   )
   creation_date = models.DateTimeField(auto_now_add=True)
+
+  @staticmethod
+  def can_user_propose_edit(user, document):
+    """
+    A user can only propose an edit to a document if it is a collaborator to the
+    parent project.
+    """
+    project = document.project_parent
+    # The owner does not need to suggest changes, but can edit the document directly.
+    if project.is_owner(user):
+      return False
+    role = project.get_user_role(user)
+    return role == "coll"
+
+  def clean(self):
+    super().clean()
+    if self.document_id and self.collaborator_id:
+      if self.document.project_parent.owner_id == self.collaborator_id:
+        raise ValidationError(
+          "The owner cannot create a PendingEdit; it can edit the document freely."
+        )
+
+  def save(self, *args, **kwargs):
+    self.full_clean()
+    super().save(*args, **kwargs)
 
   def __str__(self):
     # get_state_display() converts the value of state to its associated label.

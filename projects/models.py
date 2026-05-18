@@ -100,10 +100,16 @@ class ProjectPermission(models.Model):
     The owner cannot grant permissions to himself within its project.
     """
     super().clean()
-    if self.project.owner == self.user:
-      raise ValidationError(
-        "A project owner cannot have explicit permissions on its own project."
-      )
+    if self.project_id and self.user_id:
+      if self.project.owner_id == self.user_id:
+        raise ValidationError(
+          "A project owner cannot have explicit permissions on its own project."
+        )
+    
+  def save(self, *args, **kwargs):
+    # It forces the execution of clean() and all other validations.
+    self.full_clean()
+    super().save(*args, **kwargs)
 
   class Meta:
     constraints = [
