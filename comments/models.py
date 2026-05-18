@@ -25,6 +25,12 @@ class Comment(models.Model):
   creation_date = models.DateTimeField(auto_now_add=True)
   last_updated_date = models.DateTimeField(auto_now=True)
 
+  def can_user_comment_on_project(user, project):
+    if project.is_owner(user):
+      return True
+    role = project.get_user_role(user)
+    return role in ("comm", "coll")
+
   class Meta:
     # By default, we sort from newest to oldest.
     ordering = ['-creation_date']
