@@ -54,7 +54,7 @@ class Project(models.Model):
     """
     curr_project = self
     while curr_project is not None:
-      permission = curr_project.user_permissions.filter(user).first()
+      permission = curr_project.user_permissions.filter(user=user).first()
       if permission:
         return permission.role
       curr_project = curr_project.parent
@@ -134,9 +134,9 @@ class ProjectPermission(models.Model):
 class Comment(models.Model):
   # CASCADE: If we delete a project, we also delete the comments associated with it.
   project = models.ForeignKey(
-    'projects.Project', 
+    "projects.Project", 
     on_delete=models.CASCADE,
-    related_name='comments'
+    related_name="comments"
   )
   # SET_NULL: If we delete an user, we do not delete their comments; instead, we set
   # the attribute to NULL.
@@ -145,7 +145,7 @@ class Comment(models.Model):
     on_delete=models.SET_NULL,
     null=True,
     blank=True,
-    related_name='user_comments'
+    related_name="user_comments"
   )
 
   title = models.CharField(max_length=128)
@@ -156,7 +156,7 @@ class Comment(models.Model):
 
   class Meta:
     # By default, we sort from newest to oldest.
-    ordering = ['-creation_date']
+    ordering = ["-creation_date"]
 
   def __str__(self):
     author = self.user.username if self.user else "User deleted"
