@@ -12,13 +12,13 @@ class Command(BaseCommand):
   help = "Clear the database and reinitialize it with default static records."
 
   def handle(self, *args, **options):
-    logger.info("Emptying the database...")
+    self.stdout.write("Emptying the database...")
     
     # Flushing the database without user confirmation.
     call_command("flush", interactive=False)
     
-    logger.info("Database emptied.")
-    logger.info("Creating static records...")
+    self.stdout.write("Database emptied.")
+    self.stdout.write("Creating static records...")
 
     # 1. Creating the admin.
     admin = User.objects.create_superuser(
@@ -28,7 +28,7 @@ class Command(BaseCommand):
       first_name="Alessio", # Or Christian...
       last_name="Zanetti"   # ...Yang
     )
-    logger.info("Created admin.")
+    self.stdout.write("Created admin.")
 
     # 2. Creating 4 users.
     # Remainder: Thanks to the implemented signal, every time a user is created, its
@@ -51,7 +51,7 @@ class Command(BaseCommand):
         first_name=first_name,
         last_name=last_name
       ))
-    logger.info(f"Created {len(users)} users.")
+    self.stdout.write(f"Created {len(users)} users.")
 
     # 3. Creating the project structure for the first user.
     # Root
@@ -76,7 +76,7 @@ class Command(BaseCommand):
     routine_1_gym_0 = Project.objects.create(title="Routine 1", parent=gym_0)
     routine_2_gym_0 = Project.objects.create(title="Routine 2", parent=gym_0)
     routine_3_gym_0 = Project.objects.create(title="Routine 3", parent=gym_0)
-    logger.info("Created project structure for the first user.")
+    self.stdout.write("Created project structure for the first user.")
 
     # 4. Creating the project structure for the second user.
     # Root
@@ -89,7 +89,7 @@ class Command(BaseCommand):
     compilers_1 = Project.objects.create(title="Compilers", parent=university_1)
     part_1_compilers_1 = Project.objects.create(title="Part 1", parent=compilers_1)
     machine_learning_1 = Project.objects.create(title="Machine Learning", parent=university_1)
-    logger.info("Created project structure for the second user.")
+    self.stdout.write("Created project structure for the second user.")
 
     # 5. Creating project permissions.
     # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web
@@ -110,6 +110,6 @@ class Command(BaseCommand):
       project=compilers_0,
       role="view"
     )
-    logger.info("Created project permissions.")
+    self.stdout.write("Created project permissions.")
 
-    logger.info("Database successfully reinitialized!")
+    self.stdout.write("Database successfully reinitialized!")
