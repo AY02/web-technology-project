@@ -18,10 +18,10 @@ def bfs(parent):
   descendants = []
   queue = [parent]
   while queue:
-    children = Project.objects.filter(parent_id__in=queue).values_list(
+    children = list(Project.objects.filter(parent_id__in=queue).values_list(
       "id",
       flat=True
-    )
+    ))
     descendants.extend(children)
     queue = children
   return descendants
@@ -38,6 +38,8 @@ def create_root_project(sender, instance, created, **kwargs):
   if created:
     Project.objects.create(
       owner=instance,
+      owner_id=instance.id, # We explicitly set the raw ID to ensure validation
+                            # passes.
       title="Root",
       parent=None, # A root project has no parents.
       visibility="priv" # By default, the root project is private.
@@ -48,8 +50,9 @@ def create_root_project(sender, instance, created, **kwargs):
 def propagate_visibility(sender, instance, created, **kwargs):
   """
   When a project is updated, its visibility is propagated to its subprojects.
+  Root projects are immutable, so we skip them.
   """
-  if created:
+  if created or instance.parent is None:
     return
   descendants = bfs(instance.id)
   if descendants:
