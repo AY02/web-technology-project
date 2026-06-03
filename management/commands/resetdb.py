@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.contrib.auth.models import User
-from projects.models import Project
+from projects.models import Project, ProjectPermission
 import logging
 
 
@@ -90,3 +90,26 @@ class Command(BaseCommand):
     part_1_compilers_1 = Project.objects.create(title="Part 1", parent=compilers_1)
     machine_learning_1 = Project.objects.create(title="Machine Learning", parent=university_1)
     logger.info("Created project structure for the second user.")
+
+    # 5. Creating project permissions.
+    # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web
+    # Technologies".
+    # Marco Dondi becomes a Viewer on Alessio's "Compilers".
+    ProjectPermission.objects.create(
+      user=users[1],
+      project=part_2_compilers_0,
+      role="coll"
+    )
+    ProjectPermission.objects.create(
+      user=users[1],
+      project=web_technologies_0,
+      role="coll"
+    )
+    ProjectPermission.objects.create(
+      user=users[2],
+      project=compilers_0,
+      role="view"
+    )
+    logger.info("Created project permissions.")
+
+    logger.info("Database successfully reinitialized!")
