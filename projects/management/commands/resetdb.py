@@ -2,10 +2,6 @@ from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.contrib.auth.models import User
 from projects.models import Project, ProjectPermission
-import logging
-
-
-logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -36,8 +32,8 @@ class Command(BaseCommand):
     full_names = [
       {"first_name": "Alessio", "last_name": "Yang"},
       {"first_name": "Christian", "last_name": "Zanetti"},
-      {"first_name": "Marco", "last_name": "Dondi"},
-      {"first_name": "Federico", "last_name": "Giansoldati"}
+      {"first_name": "Federico", "last_name": "Giansoldati"},
+      {"first_name": "Marco", "last_name": "Dondi"}
     ]
     users = []
     for full_name in full_names:
@@ -94,11 +90,11 @@ class Command(BaseCommand):
     # 5. Creating the project structure for the user Federico Giansoldati.
     # Root
     #   Software Project
-    root_3 = Project.objects.get(owner=users[3], parent=None)
-    software_project_3 = Project.objects.create(title="Software Project", parent=root_3)
+    root_2 = Project.objects.get(owner=users[2], parent=None)
+    software_project_2 = Project.objects.create(title="Software Project", parent=root_2)
     self.stdout.write("Created project structure for the user Federico Giansoldati.")
 
-    # 5. Creating project permissions.
+    # 6. Creating project permissions.
     # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web
     # Technologies".
     # Marco Dondi becomes a Viewer on Alessio's "Compilers".
@@ -114,15 +110,15 @@ class Command(BaseCommand):
       role="coll"
     )
     ProjectPermission.objects.create(
-      user=users[2],
+      user=users[3],
       project=compilers_0,
       role="view"
     )
     ProjectPermission.objects.create(
-      user=users[2],
-      project=software_project_3,
+      user=users[3],
+      project=software_project_2,
       role="coll"
     )
     self.stdout.write("Created project permissions.")
 
-    self.stdout.write("Database successfully reinitialized!")
+    self.stdout.write(self.style.SUCCESS("Database successfully reinitialized!"))
