@@ -30,20 +30,14 @@ class Command(BaseCommand):
     )
     logger.info("Created admin.")
 
-    #2. Creating 10 users.
+    #2. Creating 4 users.
     # Remainder: Thanks to the implemented signal, every time a user is created, its
     # root project is also automatically created.
     full_names = [
       {"first_name": "Alessio", "last_name": "Yang"},
       {"first_name": "Christian", "last_name": "Zanetti"},
-      {"first_name": "Alessandro", "last_name": "Ferrari"},
-      {"first_name": "Sofia", "last_name": "Esposito"},
-      {"first_name": "Matteo", "last_name": "Bianchi"},
-      {"first_name": "Chiara", "last_name": "Romano"},
-      {"first_name": "Andrea", "last_name": "Colombo"},
-      {"first_name": "Francesca", "last_name": "Ricci"},
-      {"first_name": "Lorenzo", "last_name": "Marino"},
-      {"first_name": "Alice", "last_name": "Greco"}
+      {"first_name": "Marco", "last_name": "Dondi"},
+      {"first_name": "Federico", "last_name": "Giansoldati"}
     ]
     users = []
     for full_name in full_names:
