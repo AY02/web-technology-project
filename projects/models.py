@@ -38,15 +38,6 @@ class Project(models.Model):
   # Time format: YYYY-MM-DD HH:MM:SS
   creation_date = models.DateTimeField(auto_now_add=True)
 
-  def is_owner(self, user):
-    return self.owner == user
-
-  def is_public(self):
-    return self.visibility == "pub"
-
-  def is_private(self):
-    return self.visibility == "priv"
-
   def get_user_role(self, user):
     """
     Calculate a user's role for this project, traversing the project tree back to the
@@ -61,10 +52,29 @@ class Project(models.Model):
     return None
 
   def can_user_comment_on_project(self, user):
-    if self.is_owner(user):
+    if self.owner == user:
       return True
     role = self.get_user_role(user)
     return role in ("comm", "coll")
+
+  def clean(self):
+    """
+    A user cannot modify its own root project.
+    A user can only have one root project.
+    """
+    # Root project immutability
+    if self.pk is not None:
+      original = Project.objects.get(pk=self.pk)
+      if original.parent is None:
+        raise ValidationError("Root projects are immutable.")
+    # Root project uniqueness per user
+    elif self.parent is None and self.owner_id is not None:
+      existing_root = Project.objects.filter(
+        owner=self.owner,
+        parent__isnull=True
+      )
+      if existing_root.exists():
+        raise ValidationError("A user can only have one root project.")
 
   def save(self, *args, **kwargs):
     """
@@ -72,6 +82,7 @@ class Project(models.Model):
     """
     if self.parent:
       self.owner = self.parent.owner
+    self.full_clean()
     super().save(*args, **kwargs)
 
   def __str__(self):
