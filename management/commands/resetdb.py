@@ -30,7 +30,7 @@ class Command(BaseCommand):
     )
     logger.info("Created admin.")
 
-    #2. Creating 4 users.
+    # 2. Creating 4 users.
     # Remainder: Thanks to the implemented signal, every time a user is created, its
     # root project is also automatically created.
     full_names = [
@@ -65,36 +65,28 @@ class Command(BaseCommand):
     #     Routine 1
     #     Routine 2
     #     Routine 3
-    first_user = users[0]
-    first_user_root = Project.objects.get(owner=first_user, parent=None)
-    university_project = Project.objects.create(
-      title="University",
-      parent=first_user_root
-    )
-    web_technologies_project = Project.objects.create(
-      title="Web Technologies",
-      parent=university_project
-    )
-    compilers_project = Project.objects.create(
-      title="Compilers",
-      parent=university_project
-    )
-    part_1_compilers_project = Project.objects.create(
-      title="Part 1",
-      parent=compilers_project
-    )
-    part_2_compilers_project = Project.objects.create(
-      title="Part 2",
-      parent=compilers_project
-    )
-    cyberchallenge_it_project = Project.objects.create(
-      title="CyberChallenge.IT",
-      parent=university_project
-    )
-    gym_project = Project.objects.create(title="Gym", parent=first_user_root)
-    routine_1_gym = Project.objects.create(title="Routine 1", parent=gym_project)
-    routine_2_gym = Project.objects.create(title="Routine 2", parent=gym_project)
-    routine_3_gym = Project.objects.create(title="Routine 3", parent=gym_project)
+    root_0 = Project.objects.get(owner=users[0], parent=None)    
+    university_0 = Project.objects.create(title="University", parent=root_0)
+    web_technologies_0 = Project.objects.create(title="Web Technologies", parent=university_0)
+    compilers_0 = Project.objects.create(title="Compilers", parent=university_0)
+    part_1_compilers_0 = Project.objects.create(title="Part 1", parent=compilers_0)
+    part_2_compilers_0 = Project.objects.create(title="Part 2", parent=compilers_0)
+    cyberchallenge_it_0 = Project.objects.create(title="CyberChallenge.IT", parent=university_0)
+    gym_0 = Project.objects.create(title="Gym", parent=root_0)
+    routine_1_gym_0 = Project.objects.create(title="Routine 1", parent=gym_0)
+    routine_2_gym_0 = Project.objects.create(title="Routine 2", parent=gym_0)
+    routine_3_gym_0 = Project.objects.create(title="Routine 3", parent=gym_0)
     logger.info("Created project structure for the first user.")
 
-    logger.info("Database successfully reinitialized!")
+    # 4. Creating the project structure for the second user.
+    # Root
+    #   University
+    #     Compilers
+    #       Part 1
+    #     Machine Learning
+    root_1 = Project.objects.get(owner=users[1], parent=None)
+    university_1 = Project.objects.create(title="University", parent=root_1)
+    compilers_1 = Project.objects.create(title="Compilers", parent=university_1)
+    part_1_compilers_1 = Project.objects.create(title="Part 1", parent=compilers_1)
+    machine_learning_1 = Project.objects.create(title="Machine Learning", parent=university_1)
+    logger.info("Created project structure for the second user.")
