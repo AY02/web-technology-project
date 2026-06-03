@@ -53,7 +53,7 @@ class Command(BaseCommand):
       ))
     self.stdout.write(f"Created {len(users)} users.")
 
-    # 3. Creating the project structure for the first user.
+    # 3. Creating the project structure for the user Alessio Yang.
     # Root
     #   University
     #     Web Technologies
@@ -76,9 +76,9 @@ class Command(BaseCommand):
     routine_1_gym_0 = Project.objects.create(title="Routine 1", parent=gym_0)
     routine_2_gym_0 = Project.objects.create(title="Routine 2", parent=gym_0)
     routine_3_gym_0 = Project.objects.create(title="Routine 3", parent=gym_0)
-    self.stdout.write("Created project structure for the first user.")
+    self.stdout.write("Created project structure for the user Alessio Yang.")
 
-    # 4. Creating the project structure for the second user.
+    # 4. Creating the project structure for the user Christian Zanetti.
     # Root
     #   University
     #     Compilers
@@ -89,12 +89,20 @@ class Command(BaseCommand):
     compilers_1 = Project.objects.create(title="Compilers", parent=university_1)
     part_1_compilers_1 = Project.objects.create(title="Part 1", parent=compilers_1)
     machine_learning_1 = Project.objects.create(title="Machine Learning", parent=university_1)
-    self.stdout.write("Created project structure for the second user.")
+    self.stdout.write("Created project structure for the user Christian Zanetti.")
+
+    # 5. Creating the project structure for the user Federico Giansoldati.
+    # Root
+    #   Software Project
+    root_3 = Project.objects.get(owner=users[3], parent=None)
+    software_project_3 = Project.objects.create(title="Software Project", parent=root_3)
+    self.stdout.write("Created project structure for the user Federico Giansoldati.")
 
     # 5. Creating project permissions.
     # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web
     # Technologies".
     # Marco Dondi becomes a Viewer on Alessio's "Compilers".
+    # Marco Dondi becomes a Collaborator on Federico's "Software Project".
     ProjectPermission.objects.create(
       user=users[1],
       project=part_2_compilers_0,
@@ -109,6 +117,11 @@ class Command(BaseCommand):
       user=users[2],
       project=compilers_0,
       role="view"
+    )
+    ProjectPermission.objects.create(
+      user=users[2],
+      project=software_project_3,
+      role="coll"
     )
     self.stdout.write("Created project permissions.")
 
