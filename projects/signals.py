@@ -38,11 +38,8 @@ def create_root_project(sender, instance, created, **kwargs):
   if created:
     Project.objects.create(
       owner=instance,
-      owner_id=instance.id, # We explicitly set the raw ID to ensure validation
-                            # passes.
       title="Root",
-      parent=None, # A root project has no parents.
-      visibility="priv" # By default, the root project is private.
+      parent=None # A root project has no parents.
     )
 
 
@@ -51,6 +48,8 @@ def propagate_visibility(sender, instance, created, **kwargs):
   """
   When a project is updated, its visibility is propagated to its subprojects.
   Root projects are immutable, so we skip them.
+  Note: Propagation occurs even if the visibility of the parent project remains
+  unchanged.
   """
   if created or instance.parent is None:
     return

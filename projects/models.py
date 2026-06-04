@@ -62,13 +62,14 @@ class Project(models.Model):
     A user cannot modify its own root project.
     A user can only have one root project.
     """
+    super().clean()
     # Root project immutability
     if self.pk is not None:
       original = Project.objects.get(pk=self.pk)
       if original.parent is None:
         raise ValidationError("Root projects are immutable.")
     # Root project uniqueness per user
-    elif self.parent is None and self.owner_id is not None:
+    elif self.parent is None:
       existing_root = Project.objects.filter(
         owner=self.owner,
         parent__isnull=True
