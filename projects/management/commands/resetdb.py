@@ -95,30 +95,16 @@ class Command(BaseCommand):
     self.stdout.write("Created project structure for the user Federico Giansoldati.")
 
     # 6. Creating project permissions.
+    # Alessio Yang becomes a Commentator on Federico's "Software Project".
     # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web
     # Technologies".
     # Marco Dondi becomes a Viewer on Alessio's "Compilers".
     # Marco Dondi becomes a Collaborator on Federico's "Software Project".
-    ProjectPermission.objects.create(
-      user=users[1],
-      project=part_2_compilers_0,
-      role="coll"
-    )
-    ProjectPermission.objects.create(
-      user=users[1],
-      project=web_technologies_0,
-      role="coll"
-    )
-    ProjectPermission.objects.create(
-      user=users[3],
-      project=compilers_0,
-      role="view"
-    )
-    ProjectPermission.objects.create(
-      user=users[3],
-      project=software_project_2,
-      role="coll"
-    )
+    ProjectPermission.objects.create(user=users[0], project=software_project_2, role="comm")
+    ProjectPermission.objects.create(user=users[1], project=part_2_compilers_0, role="coll")
+    ProjectPermission.objects.create(user=users[1], project=web_technologies_0, role="coll")
+    ProjectPermission.objects.create(user=users[3], project=compilers_0, role="view")
+    ProjectPermission.objects.create(user=users[3], project=software_project_2, role="coll")
     self.stdout.write("Created project permissions.")
 
     self.stdout.write(self.style.SUCCESS("Database successfully reinitialized!"))
