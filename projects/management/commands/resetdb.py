@@ -96,8 +96,7 @@ class Command(BaseCommand):
 
     # 6. Creating project permissions.
     # Alessio Yang becomes a Commentator on Federico's "Software Project".
-    # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web
-    # Technologies".
+    # Christian Zanetti becomes a Collaborator on Alessio's "Part 2" and "Web Technologies".
     # Marco Dondi becomes a Viewer on Alessio's "Compilers".
     # Marco Dondi becomes a Collaborator on Federico's "Software Project".
     ProjectPermission.objects.create(user=users[0], project=software_project_2, role="comm")
