@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.conf import settings
 from .models import Project, ProjectPermission
@@ -43,15 +43,29 @@ def create_root_project(sender, instance, created, **kwargs):
     )
 
 
+@receiver(pre_save, sender=Project)
+def track_visibility_change(sender, instance, **kwargs):
+  """
+  Intercepts the save event before it hits the database to check if the visibility
+  field has changed. If it has, we flag the instance.
+  """
+  if instance.pk is None:
+    # It's a new project, nothing to compare against.
+    instance.visibility_changed = False
+    return
+  original = Project.objects.get(pk=instance.pk)
+  instance.visibility_changed = original.visibility != instance.visibility
+
+
 @receiver(post_save, sender=Project)
 def propagate_visibility(sender, instance, created, **kwargs):
   """
   When a project is updated, its visibility is propagated to its subprojects.
   Root projects are immutable, so we skip them.
-  Note: Propagation occurs even if the visibility of the parent project remains
+  Propagation does not occurs if the visibility of the parent project remains
   unchanged.
   """
-  if created or instance.parent is None:
+  if created or instance.parent is None or instance.visibility_changed:
     return
   descendants = bfs(instance.id)
   if descendants:
