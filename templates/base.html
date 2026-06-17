@@ -24,7 +24,7 @@
               <span class="nav-link text-white">Hello, {{ user.first_name|default:user.username }}</span>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Dashboard</a> </li>
+              <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a> </li>
             <li class="nav-item">
               <form method="post" action="{% url 'logout' %}" class="d-inline">
                 {% csrf_token %}
