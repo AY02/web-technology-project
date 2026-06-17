@@ -20,3 +20,12 @@ class ProjectCreationForm(forms.ModelForm):
             'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., Algorithms'}),
             'visibility': forms.Select(attrs={'class': 'form-select'}),
         }
+
+class ProjectEditForm(forms.ModelForm):
+    class Meta:
+        model = Project
+        fields = ['title', 'visibility']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'visibility': forms.Select(attrs={'class': 'form-select'}),
+        }

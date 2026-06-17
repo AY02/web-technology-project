@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from .models import Project
-from .forms import ProjectCreationForm
+from .forms import ProjectCreationForm, ProjectEditForm
 
 @login_required
 def dashboard_view(request, project_id=None):
@@ -14,11 +14,17 @@ def dashboard_view(request, project_id=None):
     subprojects = current_project.subprojects.all() if current_project else []
     parent_project = current_project.parent if current_project else None
     
+    # we create the edit form only if we are not in the root
+    edit_form = None
+    if current_project and current_project.parent is not None:
+        edit_form = ProjectEditForm(instance=current_project)
+
     context = {
         'current_project': current_project,
         'subprojects': subprojects,
         'parent_project': parent_project,
         'creation_form': ProjectCreationForm(),
+        'edit_form': edit_form,
     }
     return render(request, 'projects/dashboard.html', context)
 
@@ -38,3 +44,36 @@ def create_subproject(request, parent_id):
         
     # refreshing the page of the parent to see the new child
     return redirect('dashboard_project', project_id=parent_project.id)
+
+
+@login_required
+@require_POST
+def edit_project(request, project_id):
+    """Updates title and visibility of a subproject."""
+    project = get_object_or_404(Project, id=project_id, owner=request.user)
+    
+    # Preventing from root updates
+    if project.parent is None:
+        return redirect('dashboard')
+        
+    form = ProjectEditForm(request.POST, instance=project)
+    if form.is_valid():
+        form.save()
+        
+    return redirect('dashboard_project', project_id=project.id)
+
+@login_required
+@require_POST
+def delete_project(request, project_id):
+    """Deletes a subproject and all of its children (CASCADE of the database)."""
+    project = get_object_or_404(Project, id=project_id, owner=request.user)
+    
+    # Preventing from root updates
+    if project.parent is None:
+        return redirect('dashboard')
+        
+    parent_id = project.parent.id
+    project.delete()
+    
+    # Redirect to the parent after the delete
+    return redirect('dashboard_project', project_id=parent_id)
