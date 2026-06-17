@@ -3,8 +3,55 @@
 {% block title %}Profile - AlmostFS{% endblock %}
 
 {% block content %}
-  <h2>Your Profile</h2>
-  <p><b>Username:</b> {{ user.username }}</p>
-  <p><b>Email:</b> {{ user.email|default:"Not provided" }}</p>
-  <p><b>Date of registration:</b> {{ user.date_joined|date:"d/m/Y" }}</p>
+<div class="row justify-content-center mt-5 mb-5">
+  <div class="col-md-8 col-lg-6">
+    
+    <div class="card shadow-sm border-0">
+      
+      <div class="card-header bg-primary text-white text-center py-4 border-0">
+        
+        <div class="d-inline-flex align-items-center justify-content-center bg-white text-primary rounded-circle mb-3 shadow-sm" 
+             style="width: 80px; height: 80px; font-size: 2.5rem; font-weight: bold;">
+          {{ user.first_name|first|default:user.username|first|upper }}
+        </div>
+        
+        <h3 class="mb-0">
+          {% if user.first_name or user.last_name %}
+            {{ user.first_name }} {{ user.last_name }}
+          {% else %}
+            User Profile
+          {% endif %}
+        </h3>
+        <p class="text-white-50 mb-0">@{{ user.username }}</p>
+      </div>
+
+      <div class="card-body p-4 p-md-5">
+        <h5 class="text-muted mb-4 border-bottom pb-2">Account Details</h5>
+
+        <div class="row mb-3">
+          <div class="col-sm-4 text-muted fw-bold">Username</div>
+          <div class="col-sm-8">{{ user.username }}</div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-sm-4 text-muted fw-bold">Email</div>
+          <div class="col-sm-8">{{ user.email|default:"Not provided" }}</div>
+        </div>
+
+        <div class="row mb-4">
+          <div class="col-sm-4 text-muted fw-bold">Member since</div>
+          <div class="col-sm-8">{{ user.date_joined|date:"d/m/Y" }}</div>
+        </div>
+
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4 pt-4 border-top">
+          <a href="#" class="btn btn-primary px-4">Go to Projects</a>
+          
+          <a href="{% url 'home' %}" class="btn btn-outline-secondary px-4">Back to Home</a>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}

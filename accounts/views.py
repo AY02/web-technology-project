@@ -3,6 +3,7 @@ from django.views import generic
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login
 
 
 # Where are LoginView and LogoutView?
@@ -12,8 +13,16 @@ from django.contrib.auth.decorators import login_required
 
 class SignUpView(generic.CreateView):
   form_class = UserCreationForm
-  success_url = reverse_lazy("login")
+  success_url = reverse_lazy("profile")
   template_name = "accounts/register.html"
+
+  def form_valid(self, form):
+    """
+    We override this method to automatically log in immediately after saving the new
+    user in the database.
+    """
+    login(self.request, self.object)
+    return super().form_valid(form)
 
 @login_required
 def profile_view(request):
