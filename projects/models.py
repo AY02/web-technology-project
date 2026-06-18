@@ -76,6 +76,8 @@ class Project(models.Model):
       )
       if existing_root.exists():
         raise ValidationError("A user can only have one root project.")
+    if self.parent and self.parent.visibility == "pub" and self.visibility == "priv":
+      raise ValidationError("A public project cannot have private subprojects.")
 
   def save(self, *args, **kwargs):
     """
@@ -116,6 +118,7 @@ class ProjectPermission(models.Model):
     """
     Extended validation logic.
     The owner cannot grant permissions to himself within its project.
+    Cannot assign the 'Viewer' role to a public project.
     """
     super().clean()
     if self.project_id and self.user_id:
