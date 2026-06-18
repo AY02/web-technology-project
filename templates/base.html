@@ -48,7 +48,7 @@
     </div>
   </nav>
 
-  <main class="container">
+  <main class="container-fluid px-4 px-lg-5">
     {% if messages %}
       {% for message in messages %}
         <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-{{ message.tags|default:'info' }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
