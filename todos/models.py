@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 
 class ToDoList(models.Model):
@@ -33,3 +34,10 @@ class ToDoEntry(models.Model):
   def __str__(self):
     state = "Done" if self.is_completed else "Not Done"
     return f"[{state}] {self.content[:32]}"
+  
+  @property
+  def is_expired(self):
+    """Returns true if the deadline is expired."""
+    if self.deadline:
+      return self.deadline.date() < timezone.now().date()
+    return False

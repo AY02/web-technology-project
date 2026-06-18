@@ -154,7 +154,7 @@ def add_todo_entry(request, project_id):
     new_entry.save()
     messages.success(request, "Task added successfully.")
   else:
-    error_msg = form.non_field_errors().as_text() or "Error adding task."
+    error_msg = form.non_field_errors()[0] or "Error adding task."
     messages.error(request, error_msg)
         
   if project.parent is None:
@@ -195,6 +195,32 @@ def delete_todo_entry(request, entry_id):
   entry.delete()
   messages.success(request, "Task deleted successfully.")
     
+  if project.parent is None:
+    return redirect('dashboard')
+  return redirect('dashboard_project', project_id=project.id)
+
+
+@login_required
+@require_POST
+def edit_todo_entry(request, entry_id):
+  entry = get_object_or_404(ToDoEntry, id=entry_id)
+  project = entry.todo.project_parent
+  
+  is_owner = project.owner == request.user
+  is_collaborator = project.get_user_role(request.user) == 'coll'
+  if not (is_owner or is_collaborator):
+    raise Http404("You do not have permission to edit this task.")
+      
+  form = ToDoEntryForm(request.POST, instance=entry, todo_list=entry.todo)
+  if form.is_valid():
+    form.save()
+    messages.success(request, "Task updated successfully.")
+  else:
+    if form.non_field_errors():
+      messages.error(request, form.non_field_errors()[0])
+    else:
+      messages.error(request, "Error updating task.")
+          
   if project.parent is None:
     return redirect('dashboard')
   return redirect('dashboard_project', project_id=project.id)

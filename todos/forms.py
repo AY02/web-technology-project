@@ -15,9 +15,9 @@ class ToDoEntryForm(forms.ModelForm):
         'placeholder': 'Add a new task...',
         'required': True
       }),
-      'deadline': forms.DateTimeInput(attrs={
+      'deadline': forms.DateInput(attrs={
         'class': 'form-control border-0 bg-light',
-        'type': 'datetime-local'
+        'type': 'date'
       }),
     }
     
