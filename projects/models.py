@@ -123,6 +123,10 @@ class ProjectPermission(models.Model):
         raise ValidationError(
           "A project owner cannot have explicit permissions on its own project."
         )
+      if self.role == "view" and self.project.visibility == "pub":
+        raise ValidationError(
+          "Cannot assign the 'Viewer' role to a public project."
+        )
     
   def save(self, *args, **kwargs):
     # It forces the execution of clean() and all other validations.
