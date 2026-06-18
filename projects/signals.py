@@ -65,7 +65,7 @@ def propagate_visibility(sender, instance, created, **kwargs):
   Propagation does not occurs if the visibility of the parent project remains
   unchanged.
   """
-  if created or instance.parent is None or instance.visibility_changed:
+  if created or instance.parent is None or not instance.visibility_changed:
     return
   descendants = bfs(instance.id)
   if descendants:
