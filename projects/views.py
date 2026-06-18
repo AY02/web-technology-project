@@ -23,10 +23,25 @@ def dashboard_view(request, project_id=None):
     current_project = Project.objects.filter(
       owner=request.user, parent__isnull=True
     ).first()
+    is_owner = True
+    has_role = False
   
   subprojects = current_project.subprojects.all() if current_project else []
   parent_project = current_project.parent if current_project else None
   
+  # The user may not have the permissions to see the parent project
+  can_view_parent = False
+  if parent_project:
+    p_owner = (parent_project.owner == request.user)
+    p_pub = (parent_project.visibility == 'pub')
+    p_role = parent_project.get_user_role(request.user) is not None
+    if p_owner or p_pub or p_role:
+      can_view_parent = True
+  
+  is_collaborator = False
+  if current_project and not is_owner:
+    is_collaborator = (current_project.get_user_role(request.user) == 'coll')
+
   # We create the edit form only if we are not in the root and we are the owner.
   edit_form = None
   if (
@@ -55,16 +70,16 @@ def dashboard_view(request, project_id=None):
 
   # We only pass the form for the todos if you are an owner or collaborator.
   todo_form = None
-  if current_project:
-    is_owner = (current_project.owner == request.user)
-    is_collaborator = (current_project.get_user_role(request.user) == 'coll')
-    if is_owner or is_collaborator:
-      todo_form = ToDoEntryForm()
+  if current_project and (is_owner or is_collaborator):
+    todo_form = ToDoEntryForm()
 
   context = {
     'current_project': current_project,
     'subprojects': subprojects,
     'parent_project': parent_project,
+    'is_owner': is_owner,
+    'is_collaborator': is_collaborator,
+    'can_view_parent': can_view_parent,
     'creation_form': ProjectCreationForm(),
     'edit_form': edit_form,
     'todo_entries': todo_entries,

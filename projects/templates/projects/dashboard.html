@@ -3,6 +3,13 @@
 {% block title %}Dashboard - AlmostFS{% endblock %}
 
 {% block content %}
+<style>
+  @media (min-width: 992px) {
+    .col-custom-38 { flex: 0 0 38%; max-width: 38%; }
+    .col-custom-24 { flex: 0 0 24%; max-width: 24%; }
+  }
+</style>
+
 <div class="container-fluid mb-5">
   <div class="row">
 
@@ -10,7 +17,7 @@
       <div class="bg-white shadow-sm rounded p-4 border h-100">
         <h5 class="fw-bold text-primary mb-4">My Projects</h5>
         
-        {% if parent_project %}
+        {% if parent_project and can_view_parent %}
         <div class="mb-3 border-bottom pb-2">
           <a href="{% url 'dashboard_project' parent_project.id %}" class="text-decoration-none text-muted small fw-bold">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
@@ -41,10 +48,13 @@
           {% endfor %}
         </div>
         
+        {% if is_owner %}
         <div class="d-grid">
           <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#createProjectModal">
-            + New Subproject</button>
+            + New Subproject
+          </button>
         </div>
+        {% endif %}
       </div>
     </div>
 
@@ -64,7 +74,10 @@
 
       <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
         <div class="d-flex align-items-center">
-          <h3 class="fw-bold text-dark mb-0 me-3">{{ current_project.title }}</h3>
+          <h3 class="fw-bold text-dark mb-0 me-3">
+            {{ current_project.title }}
+            <span class="fs-6 fw-normal text-muted ms-2">by {{ current_project.owner.username }}</span>
+          </h3>
           
           {% if current_project.visibility == 'pub' %}
             <span class="badge bg-success">Public</span>
@@ -73,7 +86,7 @@
           {% endif %}
         </div>
         
-        {% if current_project.parent %}
+        {% if is_owner and current_project.parent %}
         <div>
           <button class="btn btn-sm btn-outline-primary me-2 fw-bold" data-bs-toggle="modal" data-bs-target="#editProjectModal">
             Edit
@@ -137,12 +150,7 @@
         </div>
       </div>
       
-      <style>
-        @media (min-width: 992px) {
-          .col-custom-38 { flex: 0 0 38%; max-width: 38%; }
-          .col-custom-24 { flex: 0 0 24%; max-width: 24%; }
-        }
-      </style>
+
       <div class="container-fluid mb-5">
         <div class="row">
           
@@ -157,7 +165,10 @@
                     {% for entry in todo_entries %}
                     <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-2 border-bottom">
                       <div class="d-flex align-items-center">
-                        <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" {% if entry.is_completed %}checked{% endif %} data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
+                        <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" 
+                               {% if entry.is_completed %}checked{% endif %}
+                               {% if not is_owner and not is_collaborator %}disabled{% endif %} 
+                               data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
                         <label class="form-check-label text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}">
                           {{ entry.content }}
                           {% if entry.is_completed %}
@@ -183,14 +194,13 @@
                             <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
                           </svg>
                         </button>
-                        <form method="post" action="{% url 'delete_todo_entry' entry.id %}" class="m-0 p-0 d-inline" onsubmit="return confirm('Are you sure you want to delete this task?');">
-                          {% csrf_token %}
-                          <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Delete Task">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
-                              <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.813 1H3.188l-.83 10.368A1 1 0 0 0 3.352 15h9.296a1 1 0 0 0 .994-1.132L12.813 3.5Zm-8.52 1a.5.5 0 0 1 .494.449l.5 8.5a.5.5 0 1 1-.998.06l-.5-8.5a.5.5 0 0 1 .504-.51Zm5.414.054a.5.5 0 0 1 .5.446l.5 8.5a.5.5 0 0 1-.998.06l-.5-8.5a.5.5 0 0 1 .498-.506Z"/>
-                            </svg>
-                          </button>
-                        </form>
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0" title="Delete Task" 
+                                data-entry-id="{{ entry.id }}" 
+                                onclick="openDeleteTodoModal(this)">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.813 1H3.188l-.83 10.368A1 1 0 0 0 3.352 15h9.296a1 1 0 0 0 .994-1.132L12.813 3.5Zm-8.52 1a.5.5 0 0 1 .494.449l.5 8.5a.5.5 0 1 1-.998.06l-.5-8.5a.5.5 0 0 1 .504-.51Zm5.414.054a.5.5 0 0 1 .5.446l.5 8.5a.5.5 0 0 1-.998.06l-.5-8.5a.5.5 0 0 1 .498-.506Z"/>
+                          </svg>
+                        </button>
                       </div>
                       {% endif %}
                     </li>
