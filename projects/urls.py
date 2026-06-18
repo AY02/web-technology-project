@@ -6,6 +6,7 @@ from .views import (
   delete_project,
   add_todo_entry,
   toggle_todo,
+  delete_todo_entry,
   search_public_projects,
 )
 
@@ -22,6 +23,7 @@ urlpatterns = [
   path('dashboard/<int:project_id>/delete/', delete_project, name='delete_project'),
   path('dashboard/<int:project_id>/add-todo/', add_todo_entry, name='add_todo_entry'),
   path('dashboard/todo/toggle/<int:entry_id>/', toggle_todo, name='toggle_todo'),
+  path('dashboard/todo/delete/<int:entry_id>/', delete_todo_entry, name='delete_todo_entry'),
   # API Live Search
   path(
     'dashboard/search/public/', search_public_projects, name='search_public_projects'

@@ -136,19 +136,26 @@ def delete_project(request, project_id):
 @require_POST
 def add_todo_entry(request, project_id):
   project = get_object_or_404(Project, id=project_id, owner=request.user)
-    
+  
+  # Permissions check
+  is_owner = project.owner == request.user
+  is_collaborator = project.get_user_role(request.user) == 'coll'
+  if not (is_owner or is_collaborator):
+    raise Http404("You do not have permission to add tasks.")
+
   # To be removed the "or_create" logic probably: defensive approach, 
   # if we have data from before the trigger implementation, we create the todo 
   todo_list, created = ToDoList.objects.get_or_create(project_parent=project)
     
-  form = ToDoEntryForm(request.POST)
+  form = ToDoEntryForm(request.POST, todo_list=todo_list)
   if form.is_valid():
     new_entry = form.save(commit=False)
     new_entry.todo = todo_list
     new_entry.save()
     messages.success(request, "Task added successfully.")
   else:
-    messages.error(request, "Error adding task.")
+    error_msg = form.non_field_errors().as_text() or "Error adding task."
+    messages.error(request, error_msg)
         
   if project.parent is None:
     return redirect('dashboard')
@@ -160,13 +167,38 @@ def toggle_todo(request, entry_id):
   Receive an AJAX request to invert the state 'is_completed' of a task.
   """
   entry = get_object_or_404(ToDoEntry, id=entry_id)
+  project = entry.todo.project_parent
     
-  # Ownership checks
-  if entry.todo.project_parent.owner == request.user:
+  # Permissions checks
+  is_owner = project.owner == request.user
+  is_collaborator = project.get_user_role(request.user) == 'coll'
+    
+  if is_owner or is_collaborator:
     entry.is_completed = not entry.is_completed
     entry.save()
     return HttpResponse("ok")
   return HttpResponse("error", status=403)
+
+
+@login_required
+@require_POST
+def delete_todo_entry(request, entry_id):
+  entry = get_object_or_404(ToDoEntry, id=entry_id)
+  project = entry.todo.project_parent
+    
+  is_owner = project.owner == request.user
+  is_collaborator = project.get_user_role(request.user) == 'coll'
+    
+  if not (is_owner or is_collaborator):
+    raise Http404("You do not have permission to delete this task.")
+        
+  entry.delete()
+  messages.success(request, "Task deleted successfully.")
+    
+  if project.parent is None:
+    return redirect('dashboard')
+  return redirect('dashboard_project', project_id=project.id)
+
 
 @login_required
 def search_public_projects(request):

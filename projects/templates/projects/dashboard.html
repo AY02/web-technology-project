@@ -109,29 +109,62 @@
             <div class="card-body d-flex flex-column">
               <div class="flex-grow-1 overflow-auto mb-3" style="max-height: 280px;">
                 <ul class="list-group list-group-flush">
+                  
                   {% for entry in todo_entries %}
-                  <li class="list-group-item d-flex align-items-center border-0 px-0 py-2">
-                    <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" {% if entry.is_completed %}checked{% endif %} data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
-                    <label class="form-check-label text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}">
-                      {{ entry.content }}
-                    </label>
+                  <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-2 border-bottom">
+                    
+                    <div class="d-flex align-items-center">
+                      <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" {% if entry.is_completed %}checked{% endif %} data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
+                      
+                      <label class="form-check-label text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}">
+                        {{ entry.content }}
+                        {% if entry.deadline %}
+                          <br><small class="badge bg-light text-danger fw-normal border mt-1">
+                            {{ entry.deadline|date:"d M Y, H:i" }}
+                          </small>
+                        {% endif %}
+                      </label>
+                    </div>
+
+                    {% if todo_form %}
+                    <form method="post" action="{% url 'delete_todo_entry' entry.id %}" class="m-0 p-0">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-sm btn-outline-danger border-0" title="Delete Task">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                          <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.813 1H3.188l-.83 10.368A1 1 0 0 0 3.352 15h9.296a1 1 0 0 0 .994-1.132L12.813 3.5Zm-8.52 1a.5.5 0 0 1 .494.449l.5 8.5a.5.5 0 1 1-.998.06l-.5-8.5a.5.5 0 0 1 .504-.51Zm5.414.054a.5.5 0 0 1 .5.446l.5 8.5a.5.5 0 0 1-.998.06l-.5-8.5a.5.5 0 0 1 .498-.506Z"/>
+                        </svg>
+                      </button>
+                    </form>
+                    {% endif %}
+
                   </li>
                   {% empty %}
                   <li class="list-group-item border-0 px-0 text-muted small">
                     No tasks yet. Add one below!
                   </li>
                   {% endfor %}
+                  
                 </ul>
               </div>
+
+              {% if todo_form %}
               <div class="mt-auto border-top pt-3">
                 <form method="post" action="{% url 'add_todo_entry' current_project.id %}">
                   {% csrf_token %}
-                  <div class="input-group shadow-sm rounded">
+                  
+                  <div class="input-group shadow-sm rounded mb-2">
                     {{ todo_form.content }}
-                    <button class="btn btn-primary fw-bold px-3" type="submit">+</button>
                   </div>
+                  <div class="input-group shadow-sm rounded">
+                    <span class="input-group-text bg-white border-0 text-muted small">Deadline (opt):</span>
+                    {{ todo_form.deadline }}
+                    <button class="btn btn-primary fw-bold px-4" type="submit">+</button>
+                  </div>
+                  
                 </form>
               </div>
+              {% endif %}
+
             </div>
           </div>
         </div>
@@ -285,7 +318,7 @@
 
 <!-- Javascript script for checking down the checkbox of the todo entries (AJAX) -->
 <script type="text/javascript">
-  function toggleTask(checkboxElem, entryId) {
+  function toggleTask(checkboxElem) {
     var entryId = checkboxElem.dataset.entryId;
     // Label to be checked
     var label = checkboxElem.nextElementSibling;
