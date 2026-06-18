@@ -2,16 +2,14 @@ from django.db import models
 
 
 class ToDoList(models.Model):
-  project_parent = models.ForeignKey(
+  project_parent = models.OneToOneField(
     'projects.Project',
     on_delete=models.CASCADE,
-    related_name='todo_lists'
+    related_name='todolist'
   )
-  title = models.CharField(max_length=128)
-  creation_date = models.DateTimeField(auto_now_add=True)
 
   def __str__(self):
-    return f"To-Do: {self.title} (in: {self.project_parent.title})"
+    return f"To-Do List of {self.project_parent.title}"
 
 
 class ToDoEntry(models.Model):
