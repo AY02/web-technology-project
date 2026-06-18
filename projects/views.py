@@ -4,6 +4,8 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
+from todos.models import ToDoList, ToDoEntry
+from todos.forms import ToDoEntryForm
 
 @login_required
 def dashboard_view(request, project_id=None):
@@ -22,12 +24,20 @@ def dashboard_view(request, project_id=None):
   if current_project and current_project.parent is not None:
     edit_form = ProjectEditForm(instance=current_project)
 
+  # todo logics
+  todo_entries = []
+  if current_project:
+    if hasattr(current_project, 'todolist'):
+      todo_entries = current_project.todolist.entries.all()
+
   context = {
     'current_project': current_project,
     'subprojects': subprojects,
     'parent_project': parent_project,
     'creation_form': ProjectCreationForm(),
     'edit_form': edit_form,
+    'todo_entries': todo_entries,
+    'todo_form': ToDoEntryForm(),
   }
   return render(request, 'projects/dashboard.html', context)
 
@@ -103,3 +113,26 @@ def delete_project(request, project_id):
   
   # Redirect to the parent after the delete.
   return redirect('dashboard_project', project_id=parent_id)
+
+
+@login_required
+@require_POST
+def add_todo_entry(request, project_id):
+  project = get_object_or_404(Project, id=project_id, owner=request.user)
+    
+  # To be removed the "or_create" logic probably: defensive approach, 
+  # if we have data from before the trigger implementation, we create the todo 
+  todo_list, created = ToDoList.objects.get_or_create(project_parent=project)
+    
+  form = ToDoEntryForm(request.POST)
+  if form.is_valid():
+    new_entry = form.save(commit=False)
+    new_entry.todo = todo_list
+    new_entry.save()
+    messages.success(request, "Task added successfully.")
+  else:
+    messages.error(request, "Error adding task.")
+        
+  if project.parent is None:
+    return redirect('dashboard')
+  return redirect('dashboard_project', project_id=project.id)
