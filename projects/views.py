@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
 from todos.models import ToDoList, ToDoEntry
@@ -11,7 +11,12 @@ from todos.forms import ToDoEntryForm
 @login_required
 def dashboard_view(request, project_id=None):
   if project_id:
-    current_project = get_object_or_404(Project, id=project_id, owner=request.user)
+    current_project = get_object_or_404(Project, id=project_id)
+    is_owner = (current_project.owner == request.user)
+    is_public = (current_project.visibility == 'pub')
+    has_role = current_project.get_user_role(request.user) is not None
+    if not (is_owner or is_public or has_role):
+      raise Http404("You do not have permission to view this project.")
   else:
     current_project = Project.objects.filter(
       owner=request.user, parent__isnull=True
@@ -20,9 +25,13 @@ def dashboard_view(request, project_id=None):
   subprojects = current_project.subprojects.all() if current_project else []
   parent_project = current_project.parent if current_project else None
   
-  # We create the edit form only if we are not in the root.
+  # We create the edit form only if we are not in the root and we are the owner.
   edit_form = None
-  if current_project and current_project.parent is not None:
+  if (
+    current_project and
+    current_project.parent is not None and
+    current_project.owner == request.user
+  ):
     edit_form = ProjectEditForm(instance=current_project)
 
   # todo logics
@@ -31,6 +40,14 @@ def dashboard_view(request, project_id=None):
     if hasattr(current_project, 'todolist'):
       todo_entries = current_project.todolist.entries.all()
 
+  # We only pass the form for the todos if you are an owner or collaborator.
+  todo_form = None
+  if current_project:
+    is_owner = (current_project.owner == request.user)
+    is_collaborator = (current_project.get_user_role(request.user) == 'coll')
+    if is_owner or is_collaborator:
+      todo_form = ToDoEntryForm()
+
   context = {
     'current_project': current_project,
     'subprojects': subprojects,
@@ -38,7 +55,7 @@ def dashboard_view(request, project_id=None):
     'creation_form': ProjectCreationForm(),
     'edit_form': edit_form,
     'todo_entries': todo_entries,
-    'todo_form': ToDoEntryForm(),
+    'todo_form': todo_form,
   }
   return render(request, 'projects/dashboard.html', context)
 
@@ -67,7 +84,6 @@ def create_subproject(request, parent_id):
     )
   # Refreshing the page of the parent to see the new child.
   return redirect('dashboard_project', project_id=parent_project.id)
-
 
 @login_required
 @require_POST
@@ -137,7 +153,6 @@ def add_todo_entry(request, project_id):
   if project.parent is None:
     return redirect('dashboard')
   return redirect('dashboard_project', project_id=project.id)
-
 
 @login_required
 def toggle_todo(request, entry_id):
