@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, Http404
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
+from .signals import bfs
 from todos.models import ToDoList, ToDoEntry
 from todos.forms import ToDoEntryForm
 
@@ -41,6 +42,17 @@ def dashboard_view(request, project_id=None):
     if hasattr(current_project, 'todolist'):
       todo_entries = current_project.todolist.entries.all()
 
+  calendar_entries = []
+  if current_project:
+    # Using bfs to collect the id of current project + all of its descendants
+    all_project_ids = [current_project.id] + bfs(current_project.id)
+    
+    # Finding all the deadlines in the project chain
+    calendar_entries = ToDoEntry.objects.filter(
+      todo__project_parent_id__in=all_project_ids,
+      deadline__isnull=False
+    ).select_related('todo__project_parent').order_by('deadline')
+
   # We only pass the form for the todos if you are an owner or collaborator.
   todo_form = None
   if current_project:
@@ -57,6 +69,7 @@ def dashboard_view(request, project_id=None):
     'edit_form': edit_form,
     'todo_entries': todo_entries,
     'todo_form': todo_form,
+    'calendar_entries': calendar_entries,
   }
   return render(request, 'projects/dashboard.html', context)
 
@@ -181,7 +194,7 @@ def toggle_todo(request, entry_id):
       entry.completion_date = timezone.now()
     else:
       entry.completion_date = None
-      
+
     entry.save()
     return HttpResponse("ok")
   return HttpResponse("error", status=403)
