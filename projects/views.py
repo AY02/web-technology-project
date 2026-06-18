@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
 
@@ -46,7 +47,13 @@ def create_subproject(request, parent_id):
   )
   if form.is_valid():
     form.save()
-    
+    messages.success(
+      request, f"Subproject '{form.cleaned_data['title']}' created successfully."
+    )
+  else:
+    messages.error(
+      request, "Error creating subproject. Please check the provided data."
+    )
   # Refreshing the page of the parent to see the new child.
   return redirect('dashboard_project', project_id=parent_project.id)
 
@@ -66,6 +73,11 @@ def edit_project(request, project_id):
   form = ProjectEditForm(request.POST, instance=project)
   if form.is_valid():
     form.save()
+    messages.success(request, f"Project '{project.title}' updated successfully.")
+  else:
+    messages.error(
+      request, "Error updating project. Please check the provided data."
+    )
     
   return redirect('dashboard_project', project_id=project.id)
 
@@ -82,7 +94,12 @@ def delete_project(request, project_id):
     return redirect('dashboard')
     
   parent_id = project.parent.id
+  project_title = project.title
   project.delete()
+  messages.success(
+    request,
+    f"Project '{project_title}' and all its contents were deleted successfully."
+  )
   
   # Redirect to the parent after the delete.
   return redirect('dashboard_project', project_id=parent_id)
