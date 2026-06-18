@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.http import JsonResponse
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
 from todos.models import ToDoList, ToDoEntry
@@ -136,3 +137,36 @@ def add_todo_entry(request, project_id):
   if project.parent is None:
     return redirect('dashboard')
   return redirect('dashboard_project', project_id=project.id)
+
+@login_required
+def search_public_projects(request):
+  """
+  Returns a JSON containing public projects matching the query.
+  Called via AJAX on every keystroke for the live search.
+  """
+  query = request.GET.get('query', '').strip()
+  
+  if not query:
+    return JsonResponse({'results': []})
+
+  # Filter public projects containing the query string (case-insensitive).
+  # select_related optimizes database queries by fetching owner and parent
+  # immediately.
+  projects = Project.objects.filter(
+    visibility='pub', 
+    title__icontains=query
+  ).select_related('owner', 'parent')[:10]
+
+  results = []
+  for p in projects:
+    # Disambiguation: if it has no parent, it resides in the user's Root project.
+    directory = p.parent.title if p.parent else f"Root ({p.owner.username})"
+    
+    results.append({
+      'id': p.id,
+      'title': p.title,
+      'owner': p.owner.username,
+      'directory': directory,
+    })
+
+  return JsonResponse({'results': results})

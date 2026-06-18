@@ -50,11 +50,16 @@
 
     <div class="col-lg-9">
 
-      <div class="mb-4">
-        <form class="d-flex shadow-sm rounded">
-          <input class="form-control form-control-lg border-0" type="search" placeholder="Search public projects..." aria-label="Search">
-          <button class="btn btn-primary px-4 fw-bold" type="submit">Search</button>
+      <!-- Autocomplete search bar structure -->
+      <div class="mb-4 position-relative">
+        <form class="d-flex shadow-sm rounded" onsubmit="return false;">
+          <input id="searchInput" class="form-control form-control-lg border-0" type="search" placeholder="Search public projects..." aria-label="Search" autocomplete="off">
         </form>
+        
+        <!-- Hidden drop-down menu to show results -->
+        <div id="searchResults" class="list-group position-absolute w-100 shadow mt-1" style="z-index: 1050; display: none; max-height: 400px; overflow-y: auto;">
+          <!-- JS will populate this area -->
+        </div>
       </div>
 
       <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
@@ -278,4 +283,65 @@
 </div>
 {% endif %}
 
+<!-- Javascript script for live search (AJAX) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    // We use the Django tag to get the view's url.
+    // "/projects/dashboard/search/public/"
+    const searchUrl = "{% url 'search_public_projects' %}";
+    const dashboardBaseUrl = "{% url 'dashboard' %}";
+
+    // Event listener that executes every time a character is typed.
+    searchInput.addEventListener('input', function() {
+      const query = this.value.trim();
+
+      // If the input is empty, hide the list and stop.
+      if (query.length === 0) {
+        searchResults.style.display = 'none';
+        searchResults.innerHTML = '';
+        return;
+      }
+
+      // Background fetch request in Django.
+      fetch(`${searchUrl}?query=${encodeURIComponent(query)}`) // Request
+        .then(response => response.json()) // Response
+        .then(data => { // List generation
+          searchResults.innerHTML = ''; // We clear the previous results.
+
+          if (data.results.length > 0) {
+            data.results.forEach(project => {
+              const a = document.createElement('a');
+              a.href = `${dashboardBaseUrl}${project.id}/`; // Link that leads to the project.
+              a.className = 'list-group-item list-group-item-action p-3 border-bottom';
+              
+              // We insert metadata to disambiguate projects with identical titles.
+              a.innerHTML = `
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                  <h6 class="mb-1 fw-bold text-primary">${project.title}</h6>
+                  <span class="badge bg-light text-muted border">ID: ${project.id}</span>
+                </div>
+                <p class="mb-1 small text-dark"><span class="text-muted">Directory:</span> 📁 ${project.directory}</p>
+                <small class="text-muted fw-bold">👤 Owner: ${project.owner}</small>
+              `;
+              searchResults.appendChild(a);
+            });
+          } else {
+            // No projects found.
+            searchResults.innerHTML = '<div class="list-group-item p-4 text-center text-muted">No public projects found for this query.</div>';
+          }
+          searchResults.style.display = 'block'; // We make the list visible.
+        })
+        .catch(error => console.error('Error fetching search results:', error));
+    });
+
+    // We hide the dropdown if the user clicks anywhere outside the bar.
+    document.addEventListener('click', function(event) {
+      if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+  });
+</script>
 {% endblock %}
