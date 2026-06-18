@@ -2,6 +2,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.conf import settings
 from .models import Project, ProjectPermission
+from todos.models import ToDoList
 
 
 # A signal is an automation mechanism that allows the program to execute code in
@@ -91,3 +92,12 @@ def override_child_permissions(sender, instance, **kwargs):
     project_id__in=descendants,
     user=instance.user
   ).delete()
+
+
+@receiver(post_save, sender=Project)
+def create_default_todolist(sender, instance, created, **kwargs):
+  """
+  Automatically creates a To-Do List whenever a new Project is created.
+  """
+  if created:
+    ToDoList.objects.create(project_parent=instance)
