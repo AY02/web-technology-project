@@ -21,6 +21,7 @@ class ToDoEntry(models.Model):
   )
   content = models.CharField(max_length=256)
   is_completed = models.BooleanField(default=False)
+  completion_date = models.DateTimeField(null=True, blank=True)
   # Entries with deadlines will be added to the dashboard calendar.
   deadline = models.DateTimeField(null=True, blank=True)
   last_updated_date = models.DateTimeField(auto_now=True)
@@ -31,13 +32,13 @@ class ToDoEntry(models.Model):
     # 2. Show tasks that are about to expire first.
     ordering = ['is_completed', 'deadline']
 
-  def __str__(self):
-    state = "Done" if self.is_completed else "Not Done"
-    return f"[{state}] {self.content[:32]}"
-  
   @property
   def is_expired(self):
     """Returns true if the deadline is expired."""
     if self.deadline:
       return self.deadline.date() < timezone.now().date()
     return False
+
+  def __str__(self):
+    state = "Done" if self.is_completed else "Not Done"
+    return f"[{state}] {self.content[:32]}"

@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, Http404
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
@@ -175,6 +176,12 @@ def toggle_todo(request, entry_id):
     
   if is_owner or is_collaborator:
     entry.is_completed = not entry.is_completed
+
+    if entry.is_completed:
+      entry.completion_date = timezone.now()
+    else:
+      entry.completion_date = None
+      
     entry.save()
     return HttpResponse("ok")
   return HttpResponse("error", status=403)

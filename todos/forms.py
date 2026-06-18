@@ -28,12 +28,14 @@ class ToDoEntryForm(forms.ModelForm):
 
     # Check anti duplicates
     if self.todo_list and content:
-      exists = ToDoEntry.objects.filter(
+      same_name = ToDoEntry.objects.filter(
         todo=self.todo_list,
-        content=content,
-        deadline=deadline
-        ).exists()
-      if exists:
-        raise forms.ValidationError("A task with this content and deadline already exists in this list.")
+        content=content
+        )
+      
+      if self.instance and self.instance.pk:
+        same_name = same_name.exclude(pk=self.instance.pk)
+      if same_name.exists():
+        raise forms.ValidationError("A task with this name already exists in this list.")
    
     return cleaned_data
