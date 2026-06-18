@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
 from todos.models import ToDoList, ToDoEntry
@@ -137,6 +137,21 @@ def add_todo_entry(request, project_id):
   if project.parent is None:
     return redirect('dashboard')
   return redirect('dashboard_project', project_id=project.id)
+
+
+@login_required
+def toggle_todo(request, entry_id):
+  """
+  Receive an AJAX request to invert the state 'is_completed' of a task.
+  """
+  entry = get_object_or_404(ToDoEntry, id=entry_id)
+    
+  # Ownership checks
+  if entry.todo.project_parent.owner == request.user:
+    entry.is_completed = not entry.is_completed
+    entry.save()
+    return HttpResponse("ok")
+  return HttpResponse("error", status=403)
 
 @login_required
 def search_public_projects(request):

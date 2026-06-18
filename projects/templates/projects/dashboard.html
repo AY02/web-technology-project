@@ -111,7 +111,7 @@
                 <ul class="list-group list-group-flush">
                   {% for entry in todo_entries %}
                   <li class="list-group-item d-flex align-items-center border-0 px-0 py-2">
-                    <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" {% if entry.is_completed %}checked{% endif %}>
+                    <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" {% if entry.is_completed %}checked{% endif %} data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
                     <label class="form-check-label text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}">
                       {{ entry.content }}
                     </label>
@@ -282,6 +282,34 @@
   </div>
 </div>
 {% endif %}
+
+<!-- Javascript script for checking down the checkbox of the todo entries (AJAX) -->
+<script type="text/javascript">
+  function toggleTask(checkboxElem, entryId) {
+    var entryId = checkboxElem.dataset.entryId;
+    // Label to be checked
+    var label = checkboxElem.nextElementSibling;
+    const xhttp = new XMLHttpRequest();
+    
+    xhttp.onload = function() {
+      if (xhttp.status == 200) {
+        // If it's okay we modify the label
+        if (checkboxElem.checked) {
+          label.classList.add("text-decoration-line-through");
+        } else {
+          label.classList.remove("text-decoration-line-through");
+        }
+      } else {
+        // If it's not okay, we use the checkbox as before
+        checkboxElem.checked = !checkboxElem.checked;
+        alert("Error while updating the task.");
+      }
+    };
+    
+    xhttp.open("GET", "/projects/dashboard/todo/toggle/" + entryId + "/");
+    xhttp.send();
+  }
+</script>
 
 <!-- Javascript script for live search (AJAX) -->
 <script>
