@@ -172,7 +172,19 @@
           
           <div class="mb-3">
             <label for="{{ creation_form.visibility.id_for_label }}" class="form-label fw-bold text-muted">Visibility</label>
-            {{ creation_form.visibility }}
+            
+            {% if current_project.visibility == 'pub' %}
+              <select class="form-select bg-light text-muted" disabled>
+                <option selected>Public</option>
+              </select>
+              <input type="hidden" name="visibility" value="pub">
+              <div class="form-text text-info small mt-2">
+                <strong>Note:</strong> Visibility is forced to Public because the parent project is Public.
+              </div>
+            {% else %}
+              {{ creation_form.visibility }}
+            {% endif %}
+            
           </div>
         </div>
         
@@ -203,7 +215,19 @@
           </div>
           <div class="mb-3">
             <label for="{{ edit_form.visibility.id_for_label }}" class="form-label fw-bold text-muted">Visibility</label>
-            {{ edit_form.visibility }}
+            
+            {% if parent_project and parent_project.visibility == 'pub' %}
+              <select class="form-select bg-light text-muted" disabled>
+                <option selected>Public</option>
+              </select>
+              <input type="hidden" name="visibility" value="pub">
+              <div class="form-text text-info small mt-2">
+                <strong>Note:</strong> Visibility is forced to Public because the parent project is Public.
+              </div>
+            {% else %}
+              {{ edit_form.visibility }}
+            {% endif %}
+            
           </div>
         </div>
         <div class="modal-footer border-0 bg-light">
