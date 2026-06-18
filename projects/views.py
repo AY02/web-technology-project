@@ -6,74 +6,83 @@ from .forms import ProjectCreationForm, ProjectEditForm
 
 @login_required
 def dashboard_view(request, project_id=None):
-    if project_id:
-        current_project = get_object_or_404(Project, id=project_id, owner=request.user)
-    else:
-        current_project = Project.objects.filter(owner=request.user, parent__isnull=True).first()
-    
-    subprojects = current_project.subprojects.all() if current_project else []
-    parent_project = current_project.parent if current_project else None
-    
-    # we create the edit form only if we are not in the root
-    edit_form = None
-    if current_project and current_project.parent is not None:
-        edit_form = ProjectEditForm(instance=current_project)
+  if project_id:
+    current_project = get_object_or_404(Project, id=project_id, owner=request.user)
+  else:
+    current_project = Project.objects.filter(
+      owner=request.user, parent__isnull=True
+    ).first()
+  
+  subprojects = current_project.subprojects.all() if current_project else []
+  parent_project = current_project.parent if current_project else None
+  
+  # We create the edit form only if we are not in the root.
+  edit_form = None
+  if current_project and current_project.parent is not None:
+    edit_form = ProjectEditForm(instance=current_project)
 
-    context = {
-        'current_project': current_project,
-        'subprojects': subprojects,
-        'parent_project': parent_project,
-        'creation_form': ProjectCreationForm(),
-        'edit_form': edit_form,
-    }
-    return render(request, 'projects/dashboard.html', context)
+  context = {
+    'current_project': current_project,
+    'subprojects': subprojects,
+    'parent_project': parent_project,
+    'creation_form': ProjectCreationForm(),
+    'edit_form': edit_form,
+  }
+  return render(request, 'projects/dashboard.html', context)
 
 @login_required
 @require_POST
 def create_subproject(request, parent_id):
-    """
-    After receiving data from the form we create the new subproject.
-    """
+  """
+  After receiving data from the form we create the new subproject.
+  """
 
-    # the project to which the user wants to add a subproject needs to be of its property 
-    parent_project = get_object_or_404(Project, id=parent_id, owner=request.user)
+  # The project to which the user wants to add a subproject needs to be of its
+  # property.
+  parent_project = get_object_or_404(Project, id=parent_id, owner=request.user)
+  
+  form = ProjectCreationForm(
+    data=request.POST, user=request.user, parent_project=parent_project
+  )
+  if form.is_valid():
+    form.save()
     
-    form = ProjectCreationForm(data=request.POST, user=request.user, parent_project=parent_project)
-    if form.is_valid():
-        form.save()
-        
-    # refreshing the page of the parent to see the new child
-    return redirect('dashboard_project', project_id=parent_project.id)
+  # Refreshing the page of the parent to see the new child.
+  return redirect('dashboard_project', project_id=parent_project.id)
 
 
 @login_required
 @require_POST
 def edit_project(request, project_id):
-    """Updates title and visibility of a subproject."""
-    project = get_object_or_404(Project, id=project_id, owner=request.user)
+  """
+  Update title and visibility of a subproject.
+  """
+  project = get_object_or_404(Project, id=project_id, owner=request.user)
+  
+  # Preventing root updates.
+  if project.parent is None:
+    return redirect('dashboard')
     
-    # Preventing from root updates
-    if project.parent is None:
-        return redirect('dashboard')
-        
-    form = ProjectEditForm(request.POST, instance=project)
-    if form.is_valid():
-        form.save()
-        
-    return redirect('dashboard_project', project_id=project.id)
+  form = ProjectEditForm(request.POST, instance=project)
+  if form.is_valid():
+    form.save()
+    
+  return redirect('dashboard_project', project_id=project.id)
 
 @login_required
 @require_POST
 def delete_project(request, project_id):
-    """Deletes a subproject and all of its children (CASCADE of the database)."""
-    project = get_object_or_404(Project, id=project_id, owner=request.user)
+  """
+  Delete a subproject and all of its children (CASCADE of the database).
+  """
+  project = get_object_or_404(Project, id=project_id, owner=request.user)
+  
+  # Preventing root updates.
+  if project.parent is None:
+    return redirect('dashboard')
     
-    # Preventing from root updates
-    if project.parent is None:
-        return redirect('dashboard')
-        
-    parent_id = project.parent.id
-    project.delete()
-    
-    # Redirect to the parent after the delete
-    return redirect('dashboard_project', project_id=parent_id)
+  parent_id = project.parent.id
+  project.delete()
+  
+  # Redirect to the parent after the delete.
+  return redirect('dashboard_project', project_id=parent_id)
