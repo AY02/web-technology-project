@@ -106,4 +106,27 @@ class Command(BaseCommand):
     ProjectPermission.objects.create(user=users[3], project=software_project_2, role="coll")
     self.stdout.write("Created project permissions.")
 
+    # 7. Creating PUBLIC projects to test the Live Search disambiguation.
+    # We will intentionally use duplicate titles across different users to test the search bar.
+    # Marco Dondi's public projects.
+    root_3 = Project.objects.get(owner=users[3], parent=None)
+    open_source_contrib_3 = Project.objects.create(title="Open Source Contributions", parent=root_3, visibility="pub")
+    web_technologies_3 = Project.objects.create(title="Web Technologies", parent=root_3, visibility="pub")
+    Project.objects.create(title="Notes", parent=web_technologies_3, visibility="pub") # Nested public
+    machine_learning_3 = Project.objects.create(title="Machine Learning", parent=root_3, visibility="pub")
+
+    # Federico Giansoldati's public projects
+    machine_learning_2 = Project.objects.create(title="Machine Learning", parent=root_2, visibility="pub")
+    Project.objects.create(title="Neural Networks", parent=machine_learning_2, visibility="pub")
+
+    # Alessio Yang's public projects
+    portfolio_0 = Project.objects.create(title="Public Portfolio", parent=root_0, visibility="pub")
+    Project.objects.create(title="Web Technologies", parent=portfolio_0, visibility="pub")
+
+    # Christian Zanetti's public projects
+    portfolio_1 = Project.objects.create(title="Public Portfolio", parent=root_1, visibility="pub")
+    Project.objects.create(title="Open Source Contributions", parent=portfolio_1, visibility="pub")
+    
+    self.stdout.write("Created public projects for search testing.")
+
     self.stdout.write(self.style.SUCCESS("Database successfully reinitialized!"))
