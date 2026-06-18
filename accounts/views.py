@@ -21,8 +21,9 @@ class SignUpView(generic.CreateView):
     We override this method to automatically log in immediately after saving the new
     user in the database.
     """
+    response = super().form_valid(form)
     login(self.request, self.object)
-    return super().form_valid(form)
+    return response
 
 @login_required
 def profile_view(request):
