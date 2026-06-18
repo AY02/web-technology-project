@@ -13,7 +13,7 @@
         <h3 class="mb-3">Welcome back, {{ user.first_name|default:user.username }}!</h3>
         <p class="text-muted">Are you ready to manage your projects?</p>
         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
-          <a href="#" class="btn btn-primary px-4 gap-3">Go to your Projects</a>
+          <a href="{% url 'dashboard' %}" class="btn btn-primary px-4 gap-3">Go to your Projects</a>
         </div>
       {% else %}
         <h3 class="mb-3">Your file system in the browser.</h3>
