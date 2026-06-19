@@ -97,7 +97,8 @@
         </div>
         {% endif %}
       </div>
-
+      
+      <!-- Calendar panel -->
       <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
           <h5 class="text-primary fw-bold mb-0">Deadlines Calendar</h5>
@@ -106,40 +107,42 @@
           <div class="overflow-auto" style="max-height: 320px;">
             
             {% for entry in calendar_entries %}
-              <div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded border {% if entry.is_completed %}bg-light opacity-75{% else %}bg-white shadow-sm{% endif %}">
-                
-                <div class="d-flex align-items-center">
-                  <div class="text-center rounded border p-2 bg-light me-3 shadow-sm" style="min-width: 65px;">
-                    <span class="d-block fw-bold fs-4 text-dark lh-1">{{ entry.deadline|date:"d" }}</span>
-                    <span class="text-uppercase text-primary font-monospace small fw-bold" style="font-size: 0.75rem;">{{ entry.deadline|date:"M" }}</span>
-                  </div>
+              {% if not entry.is_completed %}
+                <div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded border {% if entry.is_completed %}bg-light opacity-75{% else %}bg-white shadow-sm{% endif %}">
                   
-                  <div>
-                    <h6 class="mb-1 fw-bold {% if entry.is_completed %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}">
-                      {{ entry.content }}
-                    </h6>
+                  <div class="d-flex align-items-center">
+                    <div class="text-center rounded border p-2 bg-light me-3 shadow-sm" style="min-width: 65px;">
+                      <span class="d-block fw-bold fs-4 text-dark lh-1">{{ entry.deadline|date:"d" }}</span>
+                      <span class="text-uppercase text-primary font-monospace small fw-bold" style="font-size: 0.75rem;">{{ entry.deadline|date:"M" }}</span>
+                    </div>
                     
-                    {% if entry.is_completed %}
-                      <span class="badge bg-success py-1 px-2 small">Completed</span>
-                    {% else %}
-                      {% if entry.is_expired %}
-                        <span class="badge bg-danger py-1 px-2 small">Expired</span>
+                    <div>
+                      <h6 class="mb-1 fw-bold {% if entry.is_completed %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}">
+                        {{ entry.content }}
+                      </h6>
+                      
+                      {% if entry.is_completed %}
+                        <span class="badge bg-success py-1 px-2 small">Completed</span>
                       {% else %}
-                        <span class="badge bg-primary py-1 px-2 small">Pending</span>
+                        {% if entry.is_expired %}
+                          <span class="badge bg-danger py-1 px-2 small">Expired</span>
+                        {% else %}
+                          <span class="badge bg-primary py-1 px-2 small">Pending</span>
+                        {% endif %}
                       {% endif %}
-                    {% endif %}
 
-                    {% if entry.todo.project_parent_id != current_project.id %}
-                      <a href="{% url 'dashboard_project' entry.todo.project_parent.id %}" class="badge bg-info text-white text-decoration-none py-1 px-2 small ms-1" title="Go to this project">
-                        Inherited from: {{ entry.todo.project_parent.title }}
-                      </a>
-                    {% else %}
-                      <span class="badge bg-light text-muted border py-1 px-2 small ms-1">This project</span>
-                    {% endif %}
+                      {% if entry.todo.project_parent_id != current_project.id %}
+                        <a href="{% url 'dashboard_project' entry.todo.project_parent.id %}" class="badge bg-info text-white text-decoration-none py-1 px-2 small ms-1" title="Go to this project">
+                          Inherited from: {{ entry.todo.project_parent.title }}
+                        </a>
+                      {% else %}
+                        <span class="badge bg-light text-muted border py-1 px-2 small ms-1">This project</span>
+                      {% endif %}
+                    </div>
                   </div>
-                </div>
 
-              </div>
+                </div>
+              {% endif %}
             {% empty %}
               <div class="bg-light rounded p-5 text-center border">
                 <p class="text-muted fw-bold mb-0">No upcoming deadlines for this project or its subprojects.</p>
@@ -236,6 +239,7 @@
             {% include 'documents/document_panel.html' %}
           </div>
 
+          <!-- Comments panel -->
           <div class="col-md-12 mb-4 col-custom-24">
             <div class="card shadow-sm border-0 h-100">
               <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
@@ -269,7 +273,7 @@
   </div>
 </div>
 
-<!-- INIZIO MODALI -->
+<!-- Modals for projects and todos -->
 {% if creation_form %}
 <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
   <div class="modal-dialog">
