@@ -48,7 +48,7 @@
           {% endfor %}
         </div>
         
-        {% if is_owner %}
+        {% if creation_form %}
         <div class="d-grid">
           <button class="btn btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#createProjectModal">
             + New Subproject
@@ -295,6 +295,8 @@
   </div>
 </div>
 
+<!-- INIZIO MODALI -->
+{% if creation_form %}
 <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content border-0 shadow">
@@ -341,6 +343,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 {% if edit_form %}
 <div class="modal fade" id="editProjectModal" tabindex="-1" aria-hidden="true">

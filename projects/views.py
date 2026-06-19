@@ -25,6 +25,10 @@ def dashboard_view(request, project_id=None):
   if project.can_edit_project(request.user):
     project_edit_form = ProjectEditForm(instance=project)
 
+  project_create_form = None
+  if project.is_owner(request.user):
+    project_create_form = ProjectCreationForm()
+
   todo_form = None
   if project.can_edit_todo_document(request.user):
     todo_form = ToDoEntryForm()
@@ -38,7 +42,7 @@ def dashboard_view(request, project_id=None):
     'is_owner': project.is_owner(request.user),
     'is_collaborator': project.is_coll(request.user),
     'can_view_parent': project.parent and project.parent.can_view(request.user),
-    'creation_form': ProjectCreationForm(),
+    'creation_form': project_create_form,
     'edit_form': project_edit_form,
     'todo_entries': project.todolist.entries.all(),
     'todo_form': todo_form,
