@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, Http404
+from django.core.exceptions import ValidationError
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
 from todos.models import ToDoList, ToDoEntry
@@ -128,27 +129,29 @@ def delete_project(request, project_id):
 @require_POST
 def add_todo_entry(request, project_id):
   project = get_object_or_404(Project, id=project_id, owner=request.user)
-  
-  # Permissions check
-  if not (project.is_owner(request.user) or project.is_coll(request.user)):
+
+  if not project.can_edit_todo_document(request.user):
     raise Http404("You do not have permission to add tasks.")
 
-  # To be removed the "or_create" logic probably: defensive approach, 
-  # if we have data from before the trigger implementation, we create the todo 
-  todo_list, created = ToDoList.objects.get_or_create(project_parent=project)
-    
-  form = ToDoEntryForm(request.POST, todo_list=todo_list)
+  todo_list = ToDoList.objects.get(project_parent=project)
+
+  form = ToDoEntryForm(request.POST)
   if form.is_valid():
     new_entry = form.save(commit=False)
     new_entry.todo = todo_list
-    new_entry.save()
-    messages.success(request, "Task added successfully.")
+    try:
+      new_entry.save()
+      messages.success(request, "Task added successfully.")
+    except ValidationError as e:
+      # Model-related errors.
+      messages.error(request, e.messages[0])
   else:
-    error_msg = form.non_field_errors()[0] or "Error adding task."
-    messages.error(request, error_msg)
+    # Form-related errors.
+    messages.error(request, list(form.errors.values())[0][0])
         
-  if project.parent is None:
+  if project.is_root():
     return redirect('dashboard')
+  
   return redirect('dashboard_project', project_id=project.id)
 
 @login_required
