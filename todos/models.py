@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.db.models import F
 
 
 class ToDoList(models.Model):
@@ -30,7 +31,7 @@ class ToDoEntry(models.Model):
     # Default sorting:
     # 1. Show tasks to be done first, followed by those already completed.
     # 2. Show tasks that are about to expire first.
-    ordering = ['is_completed', 'deadline']
+    ordering = ['is_completed', F('deadline').asc(nulls_last=True)]
 
   @property
   def is_expired(self):
