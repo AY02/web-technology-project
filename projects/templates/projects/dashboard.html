@@ -17,13 +17,13 @@
       <div class="bg-white shadow-sm rounded p-4 border h-100">
         <h5 class="fw-bold text-primary mb-4">My Projects</h5>
         
-        {% if parent_project and can_view_parent %}
+        {% if current_project.parent and can_view_parent %}
         <div class="mb-3 border-bottom pb-2">
-          <a href="{% url 'dashboard_project' parent_project.id %}" class="text-decoration-none text-muted small fw-bold">
+          <a href="{% url 'dashboard_project' current_project.parent.id %}" class="text-decoration-none text-muted small fw-bold">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
               <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
             </svg>
-            Back to {{ parent_project.title }}
+            Back to {{ current_project.parent.title }}
           </a>
         </div>
         {% endif %}
@@ -36,7 +36,7 @@
             {{ current_project.title }}
           </div>
           
-          {% for project in subprojects %}
+          {% for project in current_project.subprojects.all %}
             <a href="{% url 'dashboard_project' project.id %}" class="list-group-item list-group-item-action border-0">
                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder me-2" viewBox="0 0 16 16">
                  <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4H2.19zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/>
@@ -360,7 +360,7 @@
           <div class="mb-3">
             <label for="{{ edit_form.visibility.id_for_label }}" class="form-label fw-bold text-muted">Visibility</label>
             
-            {% if parent_project and parent_project.visibility == 'pub' %}
+            {% if current_project.parent and current_project.parent.visibility == 'pub' %}
               <select class="form-select bg-light text-muted" disabled>
                 <option selected>Public</option>
               </select>
@@ -569,21 +569,4 @@
   });
 </script>
 
-<!-- Javascript script to preserve page scroll 
-<script>
-  var hasMessages = {% if messages %}true{% else %}false{% endif %};
-  document.addEventListener("DOMContentLoaded", function() {
-    let scrollpos = sessionStorage.getItem('scrollpos');
-    if (scrollpos && !hasMessages) {
-      window.scrollTo(0, parseInt(scrollpos)); 
-    }
-    sessionStorage.removeItem('scrollpos');
-  });
-
-  // Saving scroll position before the page is left
-  window.addEventListener("beforeunload", function() {
-    sessionStorage.setItem('scrollpos', window.scrollY);
-  });
-</script>
--->
 {% endblock %}

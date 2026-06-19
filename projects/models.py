@@ -38,6 +38,18 @@ class Project(models.Model):
   # Time format: YYYY-MM-DD HH:MM:SS
   creation_date = models.DateTimeField(auto_now_add=True)
 
+  def is_root(self):
+    """Return True if the project is a root."""
+    return self.parent is None
+
+  def is_owner(self, user):
+    """Return True if user is the owner."""
+    return self.owner == user
+  
+  def is_public(self):
+    """Return True if the project is public."""
+    return self.visibility == "pub"
+
   def get_user_role(self, user):
     """
     Calculate a user's role for this project, traversing the project tree back to the
@@ -50,12 +62,45 @@ class Project(models.Model):
         return permission.role
       curr_project = curr_project.parent
     return None
+  
+  def bfs(self, include_root=True):
+    """
+    Performs a breadth-first search (BFS) to find all the IDs of child projects
+    starting from the self parent ID. Returns a flat list of IDs (integers).
+    """
+    descendants = [self.id] if include_root else []
+    queue = [self.id]
+    while queue:
+      children = list(Project.objects.filter(parent_id__in=queue).values_list(
+        "id", flat=True
+      ))
+      descendants.extend(children)
+      queue = children
+    return descendants
+
+  def has_role(self, user):
+    """Return True if user has a role."""
+    return self.get_user_role(user) is not None
+  
+  def is_coll(self, user):
+    "Return True if user is a collaborator."
+    return self.get_user_role(user) == "coll"
+
+  def can_view(self, user):
+    """Return True if user can view the project."""
+    return self.is_owner(user) or self.is_public() or self.has_role(user)
+  
+  def can_edit_project(self, user):
+    """Return True if user can edit the project."""
+    return self.is_owner(user) and not self.is_root()
+
+  def can_edit_todo_document(self, user):
+    """Return True if user can edit todo entries or documents."""
+    return self.is_owner(user) or self.is_coll(user)
 
   def can_user_comment_on_project(self, user):
-    if self.owner == user:
-      return True
-    role = self.get_user_role(user)
-    return role in ("comm", "coll")
+    """Return True if user can comment on the project."""
+    return self.is_owner(user) or self.get_user_role(user) in ["comm", "coll"]
 
   def clean(self):
     """

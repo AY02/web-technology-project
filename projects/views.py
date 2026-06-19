@@ -6,86 +6,48 @@ from django.utils import timezone
 from django.http import JsonResponse, HttpResponse, Http404
 from .models import Project
 from .forms import ProjectCreationForm, ProjectEditForm
-from .signals import bfs
 from todos.models import ToDoList, ToDoEntry
 from todos.forms import ToDoEntryForm
+
 
 @login_required
 def dashboard_view(request, project_id=None):
   if project_id:
-    current_project = get_object_or_404(Project, id=project_id)
-    is_owner = (current_project.owner == request.user)
-    is_public = (current_project.visibility == 'pub')
-    has_role = current_project.get_user_role(request.user) is not None
-    if not (is_owner or is_public or has_role):
-      raise Http404("You do not have permission to view this project.")
+    project = get_object_or_404(Project, id=project_id)
   else:
-    current_project = Project.objects.filter(
-      owner=request.user, parent__isnull=True
-    ).first()
-    is_owner = True
-    has_role = False
-  
-  subprojects = current_project.subprojects.all() if current_project else []
-  parent_project = current_project.parent if current_project else None
-  
-  # The user may not have the permissions to see the parent project
-  can_view_parent = False
-  if parent_project:
-    p_owner = (parent_project.owner == request.user)
-    p_pub = (parent_project.visibility == 'pub')
-    p_role = parent_project.get_user_role(request.user) is not None
-    if p_owner or p_pub or p_role:
-      can_view_parent = True
-  
-  is_collaborator = False
-  if current_project and not is_owner:
-    is_collaborator = (current_project.get_user_role(request.user) == 'coll')
+    # Default view: root project
+    project = Project.objects.filter(owner=request.user, parent__isnull=True).first()
 
-  # We create the edit form only if we are not in the root and we are the owner.
-  edit_form = None
-  if (
-    current_project and
-    current_project.parent is not None and
-    current_project.owner == request.user
-  ):
-    edit_form = ProjectEditForm(instance=current_project)
+  if not project.can_view(request.user):
+    raise Http404("You do not have permission to view this project.")
 
-  # todo logics
-  todo_entries = []
-  if current_project:
-    if hasattr(current_project, 'todolist'):
-      todo_entries = current_project.todolist.entries.all()
+  project_edit_form = None
+  if project.can_edit_project(request.user):
+    project_edit_form = ProjectEditForm(instance=project)
 
-  calendar_entries = []
-  if current_project:
-    # Using bfs to collect the id of current project + all of its descendants
-    all_project_ids = [current_project.id] + bfs(current_project.id)
-    
-    # Finding all the deadlines in the project chain
-    calendar_entries = ToDoEntry.objects.filter(
-      todo__project_parent_id__in=all_project_ids,
-      deadline__isnull=False
-    ).select_related('todo__project_parent').order_by('deadline')
-
-  # We only pass the form for the todos if you are an owner or collaborator.
   todo_form = None
-  if current_project and (is_owner or is_collaborator):
+  if project.can_edit_todo_document(request.user):
     todo_form = ToDoEntryForm()
 
+  subprojects = project.subprojects.all()
+  todo_entries = project.todolist.entries.all()
+
+  calendar_entries = ToDoEntry.objects.filter(
+    todo__project_parent_id__in=project.bfs(), deadline__isnull=False
+  ).select_related('todo__project_parent').order_by('deadline')
+
   context = {
-    'current_project': current_project,
-    'subprojects': subprojects,
-    'parent_project': parent_project,
-    'is_owner': is_owner,
-    'is_collaborator': is_collaborator,
-    'can_view_parent': can_view_parent,
+    'current_project': project,
+    'is_owner': project.is_owner(request.user),
+    'is_collaborator': project.is_coll(request.user),
+    'can_view_parent': project.parent and project.parent.can_view(request.user),
     'creation_form': ProjectCreationForm(),
-    'edit_form': edit_form,
+    'edit_form': project_edit_form,
     'todo_entries': todo_entries,
     'todo_form': todo_form,
     'calendar_entries': calendar_entries,
   }
+
   return render(request, 'projects/dashboard.html', context)
 
 @login_required
@@ -123,7 +85,7 @@ def edit_project(request, project_id):
   project = get_object_or_404(Project, id=project_id, owner=request.user)
   
   # Preventing root updates.
-  if project.parent is None:
+  if project.is_root():
     return redirect('dashboard')
     
   form = ProjectEditForm(request.POST, instance=project)
@@ -146,7 +108,7 @@ def delete_project(request, project_id):
   project = get_object_or_404(Project, id=project_id, owner=request.user)
   
   # Preventing root updates.
-  if project.parent is None:
+  if project.is_root():
     return redirect('dashboard')
     
   parent_id = project.parent.id
@@ -167,9 +129,7 @@ def add_todo_entry(request, project_id):
   project = get_object_or_404(Project, id=project_id, owner=request.user)
   
   # Permissions check
-  is_owner = project.owner == request.user
-  is_collaborator = project.get_user_role(request.user) == 'coll'
-  if not (is_owner or is_collaborator):
+  if not (project.is_owner(request.user) or project.is_coll(request.user)):
     raise Http404("You do not have permission to add tasks.")
 
   # To be removed the "or_create" logic probably: defensive approach, 
