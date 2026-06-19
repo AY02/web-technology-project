@@ -11,7 +11,7 @@ class ToDoList(models.Model):
   )
 
   def __str__(self):
-    return f"To-Do List of {self.project_parent.title}"
+    return f'To-Do List of {self.project_parent.title}'
 
 
 class ToDoEntry(models.Model):
@@ -33,13 +33,12 @@ class ToDoEntry(models.Model):
     # 2. Show tasks that are about to expire first.
     ordering = ['is_completed', F('deadline').asc(nulls_last=True)]
 
-  @property
   def is_expired(self):
-    """Returns true if the deadline is expired."""
+    '''Returns true if the deadline is expired.'''
     if self.deadline:
       return self.deadline.date() < timezone.now().date()
     return False
 
   def __str__(self):
-    state = "Done" if self.is_completed else "Not Done"
-    return f"[{state}] {self.content[:32]}"
+    state = 'Done' if self.is_completed else 'Not Done'
+    return f'[{state}] {self.content[:32]}'
