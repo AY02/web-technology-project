@@ -38,14 +38,6 @@ class Project(models.Model):
   # Time format: YYYY-MM-DD HH:MM:SS
   creation_date = models.DateTimeField(auto_now_add=True)
 
-  def is_root(self):
-    '''Return True if the project is a root.'''
-    return self.parent is None
-
-  def is_owner(self, user):
-    '''Return True if user is the owner.'''
-    return self.owner == user
-  
   def is_public(self):
     '''Return True if the project is public.'''
     return self.visibility == 'pub'
@@ -53,6 +45,14 @@ class Project(models.Model):
   def is_private(self):
     '''Return True if the project is private.'''
     return self.visibility == 'priv'
+
+  def is_root(self):
+    '''Return True if the project is a root.'''
+    return self.parent is None
+
+  def is_owner(self, user):
+    '''Return True if user is the owner.'''
+    return self.owner == user
 
   def get_user_role(self, user):
     '''
@@ -114,8 +114,8 @@ class Project(models.Model):
       raise ValidationError('A public project cannot have private subprojects.')
 
   def save(self, *args, **kwargs):
-    '''A sub-project automatically inherits the owner from its parent.'''
-    if self.parent:
+    '''A subproject automatically inherits the owner from its parent.'''
+    if not self.is_root():
       self.owner = self.parent.owner
     self.full_clean()
     super().save(*args, **kwargs)
@@ -156,32 +156,32 @@ class ProjectPermission(models.Model):
     choices=ROLE_CHOICES
   )
   
+  def is_view(self):
+    return self.role == 'view'
+
+  def is_comm(self):
+    return self.role == 'comm'
+  
+  def is_coll(self):
+    return self.role == 'coll'
+  
   def clean(self):
-    '''
-    Extended validation logic.
-    The owner cannot grant permissions to himself within its project.
-    Cannot assign the 'Viewer' role to a public project.
-    '''
     super().clean()
-    if self.project_id and self.user_id:
-      if self.project.owner_id == self.user_id:
-        raise ValidationError(
-          'A project owner cannot have explicit permissions on its own project.'
-        )
-      if self.role == 'view' and self.project.visibility == 'pub':
-        raise ValidationError('Cannot assign the Viewer role to a public project.')
+    if self.project.is_owner(self.user):
+      raise ValidationError('The owner cannot have permissions on its own project.')
+    if self.is_view() and self.project.is_public():
+      raise ValidationError('Cannot assign the viewer role to a public project.')
     
   def save(self, *args, **kwargs):
-    # It forces the execution of clean() and all other validations.
     self.full_clean()
     super().save(*args, **kwargs)
 
   class Meta:
     constraints = [
-      # Uniqueness of the (user, project) pair.
       models.UniqueConstraint(
         fields=['user', 'project'],
-        name='unique_user_project_permission'
+        name='unique_user_project_permission',
+        violation_error_message = 'A user can have at most only one permission on the same project.'
       )
     ]
 
