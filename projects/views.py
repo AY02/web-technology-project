@@ -29,9 +29,6 @@ def dashboard_view(request, project_id=None):
   if project.can_edit_todo_document(request.user):
     todo_form = ToDoEntryForm()
 
-  subprojects = project.subprojects.all()
-  todo_entries = project.todolist.entries.all()
-
   calendar_entries = ToDoEntry.objects.filter(
     todo__project_parent_id__in=project.bfs(), deadline__isnull=False
   ).select_related('todo__project_parent').order_by('deadline')
@@ -43,7 +40,7 @@ def dashboard_view(request, project_id=None):
     'can_view_parent': project.parent and project.parent.can_view(request.user),
     'creation_form': ProjectCreationForm(),
     'edit_form': project_edit_form,
-    'todo_entries': todo_entries,
+    'todo_entries': project.todolist.entries.all(),
     'todo_form': todo_form,
     'calendar_entries': calendar_entries,
   }
