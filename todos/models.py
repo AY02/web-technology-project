@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
-from django.db.models import F
+from django.db.models import F, UniqueConstraint
+from django.core.exceptions import ValidationError
 
 
 class ToDoList(models.Model):
@@ -32,6 +33,34 @@ class ToDoEntry(models.Model):
     # 1. Show tasks to be done first, followed by those already completed.
     # 2. Show tasks that are about to expire first.
     ordering = ['is_completed', F('deadline').asc(nulls_last=True)]
+    
+    # Database-level constraint to prevent identical records
+    constraints = [
+      models.UniqueConstraint(
+        fields=['todo', 'content'],
+        name='unique_todo_content'
+      )
+    ]
+
+  def clean(self):
+    """
+    Django-level validation to catch errors before they reach the database and return
+    a clear message in the form.
+    """
+    super().clean()
+    if self.todo_id and self.content:
+      same_name = ToDoEntry.objects.filter(
+        todo_id=self.todo_id,
+        content=self.content
+      )
+      if self.id:
+        same_name = same_name.exclude(id=self.id)
+      if same_name.exists():
+        raise ValidationError('A task with this name already exists in this list.')
+
+  def save(self, *args, **kwargs):
+    self.full_clean()
+    super().save(*args, **kwargs)
 
   def is_expired(self):
     '''Returns true if the deadline is expired.'''
