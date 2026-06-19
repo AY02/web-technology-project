@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Review Edits - {{ project.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5" style="max-width: 900px;">
+  
+  <div class="mb-4">
+    <a href="{% url 'dashboard_project' project.id %}" class="text-decoration-none text-muted fw-bold">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
+      Back to Dashboard ({{ project.title }})
+    </a>
+  </div>
+
+  <h3 class="fw-bold mb-4">Pending Edits Review</h3>
+
+  <div class="card shadow-sm border-0">
+    <div class="list-group list-group-flush">
+      {% for edit in pending_edits %}
+      <div class="list-group-item p-4">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 class="fw-bold text-dark mb-1">
+              Document: <a href="{% url 'documents:document_detail' edit.document.id %}" target="_blank" class="text-decoration-none">{{ edit.document.title }}</a>
+            </h5>
+            <small class="text-muted">
+              Proposed by <strong>{{ edit.collaborator.username }}</strong> on {{ edit.creation_date|date:"d M Y, H:i" }}
+            </small>
+          </div>
+          
+          <div class="d-flex">
+            <form method="POST" action="{% url 'documents:handle_edit' edit.id 'reject' %}" class="me-2 m-0 p-0" onsubmit="return confirm('Reject these changes?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger fw-bold">Reject</button>
+            </form>
+            <form method="POST" action="{% url 'documents:handle_edit' edit.id 'accept' %}" class="m-0 p-0" onsubmit="return confirm('Accept and overwrite the original document?');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-success fw-bold">Accept Changes</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card border border-danger border-opacity-25 h-100 bg-light">
+              <div class="card-header border-0 bg-transparent text-danger fw-bold pb-0"><small>ORIGINAL</small></div>
+              <div class="card-body py-2">
+                <p class="mb-0 fs-6 text-muted" style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem !important;">{{ edit.document.content|truncatechars:200 }}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border border-success border-opacity-25 h-100 bg-white shadow-sm">
+              <div class="card-header border-0 bg-transparent text-success fw-bold pb-0"><small>PROPOSED</small></div>
+              <div class="card-body py-2">
+                <p class="mb-0 fs-6" style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem !important;">{{ edit.modified_content|truncatechars:200 }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      {% empty %}
+      <div class="p-5 text-center text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" fill="currentColor" class="bi bi-check-circle text-success mb-3 opacity-50" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/><path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z"/></svg>
+        <h5 class="fw-bold">All caught up!</h5>
+        <p class="mb-0">There are no pending edits for this project.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

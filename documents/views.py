@@ -1,7 +1,10 @@
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.detail import DetailView
+from django.views.generic.list import ListView
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -144,3 +147,54 @@ class ProposeEditView(LoginRequiredMixin, UpdateView):
 
   def get_success_url(self):
     return reverse('documents:document_detail', kwargs={'pk': self.document.id})
+  
+
+# Owner's pending logic
+class ReviewEditsView(LoginRequiredMixin, ListView):
+  model = PendingEdit
+  template_name = 'documents/review_edits.html'
+  context_object_name = 'pending_edits'
+
+  def dispatch(self, request, *args, **kwargs):
+    self.project = get_object_or_404(Project, id=self.kwargs['project_id'])
+    if not self.project.is_owner(request.user):
+      raise Http404("Only the project owner can review edits.")
+    return super().dispatch(request, *args, **kwargs)
+
+  def get_queryset(self):
+    """Filtering pending edit for this document."""
+    return PendingEdit.objects.filter(
+      document__project_parent=self.project,
+      state='pen'
+    ).select_related('document', 'collaborator').order_by('-creation_date')
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['project'] = self.project
+    return context
+
+@login_required
+@require_POST
+def handle_pending_edit(request, edit_id, action):
+  """
+  Handles the acceptance or the rejection of a proposal, 
+  given an action from the URL ('accept' or 'reject')
+  using the model's methods.
+  """
+  pending_edit = get_object_or_404(PendingEdit, id=edit_id)
+  project = pending_edit.document.project_parent
+
+  # Permissions
+  if not project.is_owner(request.user):
+    raise Http404("Only the owner can handle edits.")
+
+  if action == 'accept':
+    pending_edit.accept()
+    messages.success(request, f"Changes applied to '{pending_edit.document.title}'.")
+  elif action == 'reject':
+    pending_edit.reject()
+    messages.info(request, f"Proposed changes to '{pending_edit.document.title}' were rejected.")
+  else:
+    raise Http404("Invalid action.")
+
+  return redirect('documents:review_edits', project_id=project.id)

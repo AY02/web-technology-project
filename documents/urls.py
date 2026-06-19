@@ -9,4 +9,6 @@ urlpatterns = [
   path('<int:pk>/edit/', views.DocumentUpdateView.as_view(), name='edit_document'),
   path('<int:pk>/delete/', views.DocumentDeleteView.as_view(), name='delete_document'),
   path('<int:document_id>/propose/', views.ProposeEditView.as_view(), name='propose_edit'),
+  path('project/<int:project_id>/review/', views.ReviewEditsView.as_view(), name='review_edits'),  
+  path('edit/<int:edit_id>/<str:action>/', views.handle_pending_edit, name='handle_edit'),
 ]
