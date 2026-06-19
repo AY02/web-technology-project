@@ -127,6 +127,7 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # It tells Django to use my custom User class instead of the default User class.
 # AUTH_USER_MODEL = 'auth.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # LOGIN_REDIRECT_URL = '/accounts/profile/'
 # LOGIN_URL = '/accounts/login/'
