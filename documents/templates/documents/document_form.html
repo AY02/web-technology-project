@@ -1,36 +1,64 @@
 {% extends "base.html" %}
 
-{% block title %}{% if is_update %}Edit{% else %}New{% endif %} Document - {{ project.title }}{% endblock %}
+{% block title %}
+  {% if is_proposal %}Propose Edit{% elif is_update %}Edit{% else %}New{% endif %} Document - {{ project.title }}
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4 mb-5" style="max-width: 800px;">
   
   <div class="mb-4">
-    <a href="{% url 'dashboard_project' project.id %}" class="text-decoration-none text-muted fw-bold">
+    <a href="{% if is_update or is_proposal %}{% url 'documents:document_detail' document.id %}{% else %}{% url 'dashboard_project' project.id %}{% endif %}" class="text-decoration-none text-muted fw-bold">
       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
-      Back to Dashboard ({{ project.title }})
+      {% if is_update or is_proposal %}Back to Document{% else %}Back to Dashboard ({{ project.title }}){% endif %}
     </a>
   </div>
 
   <div class="card shadow-sm border-0">
-    <div class="card-header bg-primary text-white border-0 py-3">
-      <h4 class="mb-0 fw-bold">{% if is_update %}Edit Document{% else %}Create New Document{% endif %}</h4>
+    <div class="card-header {% if is_proposal %}bg-success{% else %}bg-primary{% endif %} text-white border-0 py-3">
+      <h4 class="mb-0 fw-bold">
+        {% if is_proposal %}
+          Propose Edit: {{ document.title }}
+        {% elif is_update %}
+          Edit Document
+        {% else %}
+          Create New Document
+        {% endif %}
+      </h4>
     </div>
     
     <div class="card-body p-5">
+      
+      {% if is_proposal %}
+      <div class="alert alert-info border-0 shadow-sm mb-4">
+        <strong>Note:</strong> You are proposing changes as a collaborator. The project owner will need to review and accept your edit before it becomes visible.
+      </div>
+      {% endif %}
+
       <form method="POST">
         {% csrf_token %}
         <div class="mb-4">
           <label class="form-label fw-bold text-muted">Title</label>
-          {{ form.title }}
+          {% if is_proposal %}
+            {{ form.modified_title }}
+          {% else %}
+            {{ form.title }}
+          {% endif %}
         </div>
         <div class="mb-4">
           <label class="form-label fw-bold text-muted">Document Content</label>
-          {{ form.content }}
+          {% if is_proposal %}
+            {{ form.modified_content }}
+          {% else %}
+            {{ form.content }}
+          {% endif %}
         </div>
         <div class="d-flex justify-content-end border-top pt-4">
-          <a href="{% if is_update %}{% url 'documents:document_detail' document.id %}{% else %}{% url 'dashboard_project' project.id %}{% endif %}" class="btn btn-outline-secondary me-2 fw-bold px-4">Cancel</a>
-          <button type="submit" class="btn btn-primary fw-bold px-4">Save Document</button>
+          <a href="{% if is_update or is_proposal %}{% url 'documents:document_detail' document.id %}{% else %}{% url 'dashboard_project' project.id %}{% endif %}" class="btn btn-outline-secondary me-2 fw-bold px-4">Cancel</a>
+          
+          <button type="submit" class="btn {% if is_proposal %}btn-success{% else %}btn-primary{% endif %} fw-bold px-4">
+            {% if is_proposal %}Submit Proposal{% else %}Save Document{% endif %}
+          </button>
         </div>
       </form>
     </div>

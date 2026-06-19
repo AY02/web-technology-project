@@ -45,7 +45,7 @@ def dashboard_view(request, project_id=None):
     'can_view_parent': project.parent and project.parent.can_view(request.user),
     'creation_form': project_create_form,
     'edit_form': project_edit_form,
-    'todo_entries': project.todolist.entries.all(),
+    'todo_entries': project.todolist.entries.all() if hasattr(project, 'todolist') else [],
     'todo_form': todo_form,
     'calendar_entries': calendar_entries,
   }

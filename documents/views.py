@@ -7,8 +7,8 @@ from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from projects.models import Project
-from .models import Document
-from .forms import DocumentForm
+from .models import Document, PendingEdit
+from .forms import DocumentForm, PendingEditForm
 
 
 class DocumentCreateView(LoginRequiredMixin, CreateView):
@@ -56,8 +56,13 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
     """Permissions to show/hide Edit/Delete buttons in the template."""
     context = super().get_context_data(**kwargs)
     doc = self.get_object()
-    context['is_owner'] = doc.is_owner(self.request.user)
-    context['can_propose'] = doc.can_propose_edit(self.request.user)
+    user = self.request.user
+    context['is_owner'] = doc.is_owner(user)
+    context['can_propose'] = doc.can_propose_edit(user)
+    # if the user can propose, we check if there is already a pending edit
+    if context['can_propose']:
+      pending_edit = doc.pending_edits.filter(collaborator=user, state='pen').first()
+      context['user_pending_edit'] = pending_edit
     return context
 
 
@@ -99,3 +104,43 @@ class DocumentDeleteView(LoginRequiredMixin, DeleteView):
     project_id = self.get_object().project_parent.id
     messages.success(self.request, "Document deleted successfully.")
     return reverse('dashboard_project', kwargs={'project_id': project_id})
+  
+
+class ProposeEditView(LoginRequiredMixin, UpdateView):
+  model = PendingEdit
+  form_class = PendingEditForm
+  template_name = 'documents/document_form.html'
+
+  def get_object(self, queryset=None):
+    """Searches for pending drafts, otherwhise it creates it."""
+    self.document = get_object_or_404(Document, id=self.kwargs['document_id'])
+        
+    if not self.document.can_propose_edit(self.request.user):
+      raise Http404("You do not have permission to propose edits to this document.")
+        
+    obj, created = PendingEdit.objects.get_or_create(
+      document=self.document,
+      collaborator=self.request.user,
+      state='pen',
+      # the defaults are the original title and content of the document
+      defaults={
+        'modified_title': self.document.title,
+        'modified_content': self.document.content
+      }
+    )
+    return obj
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    # variables for the correct use of the templates
+    context['project'] = self.document.project_parent
+    context['document'] = self.document
+    context['is_proposal'] = True 
+    return context
+
+  def form_valid(self, form):
+    messages.success(self.request, "Your edit proposal has been saved and is waiting for review.")
+    return super().form_valid(form)
+
+  def get_success_url(self):
+    return reverse('documents:document_detail', kwargs={'pk': self.document.id})
