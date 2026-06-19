@@ -13,7 +13,6 @@ from .views import (
 
 urlpatterns = [
   path('dashboard/', dashboard_view, name='dashboard'),
-  # If the url includes an additional parameter we include that project.
   path('dashboard/<int:project_id>/', dashboard_view, name='dashboard_project'),
   path('dashboard/<int:parent_id>/create/', create_subproject, name='create_subproject'),
   path('dashboard/<int:project_id>/edit/', edit_project, name='edit_project'),
@@ -23,7 +22,5 @@ urlpatterns = [
   path('dashboard/todo/delete/<int:entry_id>/', delete_todo_entry, name='delete_todo_entry'),
   path('dashboard/todo/edit/<int:entry_id>/', edit_todo_entry, name='edit_todo_entry'),
   # API Live Search
-  path(
-    'dashboard/search/public/', search_public_projects, name='search_public_projects'
-  ),
+  path('dashboard/search/public/', search_public_projects, name='search_public_projects'),
 ]
