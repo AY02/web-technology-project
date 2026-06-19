@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Document{% endblock %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+  <div class="card shadow-sm border-0" style="max-width: 500px; width: 100%;">
+    <div class="card-header bg-danger text-white border-0 py-3 text-center">
+      <h5 class="mb-0 fw-bold">Confirm Deletion</h5>
+    </div>
+    <div class="card-body p-4 text-center">
+      <p class="mb-4">Are you sure you want to permanently delete the document <strong>"{{ object.title }}"</strong>?</p>
+      
+      <form method="POST">
+        {% csrf_token %}
+        <a href="{% url 'documents:document_detail' object.id %}" class="btn btn-outline-secondary fw-bold px-4 me-2">Cancel</a>
+        <button type="submit" class="btn btn-danger fw-bold px-4">Yes, Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

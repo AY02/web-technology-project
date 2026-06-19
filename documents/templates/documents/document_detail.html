@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ document.title }} - AlmostFS{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5" style="max-width: 900px;">
+  
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="{% url 'dashboard_project' document.project_parent.id %}" class="text-decoration-none text-muted fw-bold">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
+      Back to Dashboard
+    </a>
+    
+    <div>
+      {% if is_owner %}
+        <a href="{% url 'documents:edit_document' document.id %}" class="btn btn-outline-primary fw-bold me-2">Edit Document</a>
+        <a href="{% url 'documents:delete_document' document.id %}" class="btn btn-outline-danger fw-bold">Delete</a>
+      {% elif can_propose %}
+        <a href="#" class="btn btn-outline-success fw-bold">Propose Edit</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card shadow border-0">
+    <div class="card-body p-5">
+      <h2 class="fw-bold mb-1">{{ document.title }}</h2>
+      <p class="text-muted small mb-5 border-bottom pb-3">
+        Last updated: {{ document.last_updated_date|date:"d M Y, H:i" }}
+      </p>
+      
+      <div class="document-content fs-5" style="white-space: pre-wrap; line-height: 1.6;">{{ document.content }}</div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
