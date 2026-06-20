@@ -120,13 +120,18 @@ def add_permission(request, project_id):
       return redirect('dashboard_project', project_id=project.id)
 
     # Creating or updating the permission
-    ProjectPermission.objects.update_or_create(
-      user=target_user,
-      project=project,
-      defaults={'role': role}
-    )
+    try:
+      ProjectPermission.objects.update_or_create(
+        user=target_user,
+        project=project,
+        defaults={'role': role}
+      )
+      messages.success(request, f"Successfully assigned the role of {readable_role} to '{username}'.")
+      
+    except ValidationError as e:
+      error_msg = e.messages[0] if hasattr(e, 'messages') else str(e)
+      messages.error(request, error_msg)
         
-    messages.success(request, f"Successfully assigned role of {readable_role} to '{username}'.")
   else:
     messages.error(request, "Invalid form submission.")
 

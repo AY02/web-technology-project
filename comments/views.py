@@ -7,6 +7,7 @@ from projects.models import Project
 from accounts.models import User
 
 from .forms import CommentForm
+from .models import Comment
 
 
 @login_required
@@ -28,3 +29,18 @@ def add_comment(request, project_id):
     messages.error(request, "Error posting comment. It cannot be empty.")
 
   return redirect('dashboard_project', project_id=project.id)
+
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+  comment = get_object_or_404(Comment, id=comment_id)
+  project_id = comment.project.id
+  
+  # The user must be the author of the comment
+  if request.user == comment.user:
+    comment.delete()
+  else:
+    messages.error(request, "You do not have permission to delete this comment.")
+    
+  return redirect('dashboard_project', project_id=project_id)
