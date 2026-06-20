@@ -1,5 +1,5 @@
 from django import forms
-from .models import Project
+from .models import Project, ProjectPermission
 
 
 class ProjectCreateForm(forms.ModelForm):
@@ -24,6 +24,7 @@ class ProjectCreateForm(forms.ModelForm):
       'visibility': forms.Select(attrs={'class': 'form-select'}),
     }
 
+
 class ProjectEditForm(forms.ModelForm):
   class Meta:
     model = Project
@@ -32,3 +33,17 @@ class ProjectEditForm(forms.ModelForm):
       'title': forms.TextInput(attrs={'class': 'form-control'}),
       'visibility': forms.Select(attrs={'class': 'form-select'}),
     }
+
+
+class AddPermissionForm(forms.Form):
+  username = forms.CharField(
+    max_length=150, 
+    widget=forms.TextInput(attrs={
+      'class': 'form-control', 
+      'placeholder': 'Enter exact username (e.g. christian.zanetti)'
+    })
+  )
+  role = forms.ChoiceField(
+    choices=ProjectPermission.ROLE_CHOICES,
+    widget=forms.Select(attrs={'class': 'form-select'})
+  )

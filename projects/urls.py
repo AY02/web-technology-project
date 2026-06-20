@@ -3,6 +3,8 @@ from .views import (
   create_subproject,
   edit_project,
   delete_project,
+  add_permission,
+  remove_permission,
   search_public_projects,
   SharedProjectsListView
 )
@@ -12,6 +14,8 @@ urlpatterns = [
   path('<int:parent_id>/create/', create_subproject, name='create_subproject'),
   path('<int:project_id>/edit/', edit_project, name='edit_project'),
   path('<int:project_id>/delete/', delete_project, name='delete_project'),
+  path('<int:project_id>/add-permission/', add_permission, name='add_permission'),
+  path('<int:project_id>/remove-permission/<int:permission_id>/', remove_permission, name='remove_permission'),
   path('shared_with_me/', SharedProjectsListView.as_view(), name='shared_projects'),
   
   # API Live Search

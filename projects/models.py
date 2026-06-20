@@ -84,6 +84,7 @@ class Project(models.Model):
   def delete(self, *args, **kwargs):
     if self.is_root():
       raise ValidationError("You can't delete a root project manually. Remove the owner if necessary.")
+    super().delete(*args, **kwargs)
 
   class Meta:
     constraints = [
