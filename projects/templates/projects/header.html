@@ -1,24 +1,33 @@
-<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-  <div class="d-flex align-items-center">
-    <h3 class="fw-bold text-dark mb-0 me-3">
-      {{ project.title }}
-      <span class="fs-6 fw-normal text-muted ms-2">by {{ project.owner.username }}</span>
-    </h3>
+<div class="d-flex justify-content-between align-items-start mb-4 border-bottom pb-3">
+  
+  <div class="d-flex flex-column flex-grow-1" style="min-width: 0;">
     
-    {% if project.visibility == 'pub' %}
-      <span class="badge bg-success">Public</span>
-    {% else %}
-      <span class="badge bg-secondary">Private</span>
-    {% endif %}
+    <div class="d-flex align-items-center mb-1">
+      <h3 class="fw-bold text-dark mb-0 me-3 text-truncate">
+        {{ project.title }}
+      </h3>
+      
+      <div class="flex-shrink-0">
+        {% if project.visibility == 'pub' %}
+          <span class="badge bg-success">Public</span>
+        {% else %}
+          <span class="badge bg-secondary">Private</span>
+        {% endif %}
+      </div>
+    </div>
+    
+    <span class="fs-6 text-muted">by {{ project.owner.username }}</span>
   </div>
   
-  <div class="d-flex align-items-center">
+  <div class="d-flex align-items-center flex-shrink-0 mt-2">
+    
     {% if add_permission_form %}
-      <button type="button" class="btn btn-sm btn-primary me-3 fw-bold rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
+      <button type="button" class="btn btn-sm btn-primary me-2 fw-bold rounded-pill px-3 shadow-sm d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#inviteUserModal">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-person-plus-fill me-1" viewBox="0 0 16 16"><path d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z"/></svg>
-        Invite User
+        <span class="d-none d-md-inline">Invite User</span>
       </button>
     {% endif %}
+
     {% if project_edit_form %}
       <button class="btn btn-sm btn-outline-primary me-2 fw-bold" data-bs-toggle="modal" data-bs-target="#editProjectModal">
         Edit
@@ -27,5 +36,6 @@
         Delete
       </button>
     {% endif %}
+
   </div>
 </div>

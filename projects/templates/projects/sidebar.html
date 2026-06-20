@@ -1,5 +1,13 @@
-<div class="bg-white shadow-sm rounded p-4 border h-100">
-  <h5 class="fw-bold text-primary mb-4">My Projects</h5>
+<div class="bg-white shadow-sm rounded p-4 border" style="position: sticky; top: 20px; height: calc(100vh - 120px); overflow-y: auto; overflow-x: hidden;">
+  
+  <a href="{% url 'dashboard' %}" class="text-decoration-none">
+    <h5 class="fw-bold text-primary mb-4 hover-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-house-door-fill me-1 pb-1" viewBox="0 0 16 16">
+        <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5Z"/>
+      </svg>
+      My Projects
+    </h5>
+  </a>
   
   <div class="mb-3 border-bottom pb-3">
     <a href="{% url 'shared_projects' %}" class="text-decoration-none text-dark fw-bold d-flex align-items-center hover-primary">
