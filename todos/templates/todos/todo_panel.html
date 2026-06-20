@@ -59,13 +59,12 @@
     <div class="mt-auto border-top pt-3">
       <form method="post" action="{% url 'add_todo_entry' project.todolist.id %}">
         {% csrf_token %}
-        <div class="input-group shadow-sm rounded mb-2">
+        <div class="mb-2 shadow-sm rounded">
           {{ todo_form.content }}
         </div>
         <div class="input-group shadow-sm rounded">
-          <span class="input-group-text bg-white border-0 text-muted small">Deadline (opt):</span>
           {{ todo_form.deadline }}
-          <button class="btn btn-primary fw-bold px-4" type="submit">+</button>
+          <button class="btn btn-primary fw-bold px-3" type="submit" title="Add Task">+</button>
         </div>
       </form>
     </div>
