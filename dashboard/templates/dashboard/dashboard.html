@@ -10,18 +10,22 @@
       {% include 'projects/sidebar.html' %}
     </div>
 
-    <div class="col-lg-6 mb-4">
+    <div class="col-lg-6 mb-4 d-flex flex-column" style="min-height: calc(100vh - 120px);">
       
       {% include 'projects/search_bar.html' %}
       {% include 'projects/header.html' %}
       {% include 'todos/calendar_panel.html' %}
 
-      <div class="row">
-        <div class="col-xl-6 mb-4">
-          {% include 'todos/todo_panel.html' %}
+      <div class="row flex-grow-1">
+        <div class="col-xl-6 mb-4 d-flex">
+          <div class="w-100 h-100">
+            {% include 'todos/todo_panel.html' %}
+          </div>
         </div>
-        <div class="col-xl-6 mb-4">
-          {% include 'documents/document_panel.html' %}
+        <div class="col-xl-6 mb-4 d-flex">
+          <div class="w-100 h-100">
+            {% include 'documents/document_panel.html' %}
+          </div>
         </div>
       </div>
 
