@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Review Edits - {{ project.title }}{% endblock %}
 
@@ -12,7 +13,47 @@
     </a>
   </div>
 
-  <h3 class="fw-bold mb-4">Pending Edits Review</h3>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold mb-0">Pending Edits Review</h3>
+
+    <div class="dropdown">
+      <button class="btn btn-outline-secondary fw-bold dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-funnel-fill me-1" viewBox="0 0 16 16"><path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z"/></svg>
+        {% if filtered_doc_id %}
+          Filtered View
+        {% else %}
+          Filter by Document
+        {% endif %}
+      </button>
+      
+      <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1">
+        <li>
+          <a class="dropdown-item fw-bold {% if not filtered_doc_id %}text-primary bg-light{% endif %}" href="{% url 'documents:review_edits' project.id %}">
+            Show all documents
+          </a>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li class="dropdown-header small text-muted text-uppercase fw-bold">Select a document</li>
+        
+        {% for doc in documents_with_edits %}
+          <li>
+            <a class="dropdown-item {% if filtered_doc_id == doc.id|stringformat:'s' %}active bg-primary{% endif %}" href="{% url 'documents:review_edits' project.id %}?doc={{ doc.id }}">
+              {{ doc.title }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  {% if filtered_doc_id %}
+  <div class="alert alert-secondary py-2 mb-4 d-flex justify-content-between align-items-center border-0 shadow-sm">
+    <span class="small fw-bold text-muted">
+      Currently viewing edits only for the selected document.
+    </span>
+    <a href="{% url 'documents:review_edits' project.id %}" class="btn btn-sm btn-outline-secondary fw-bold px-3">Clear Filter</a>
+  </div>
+  {% endif %}
 
   <div class="card shadow-sm border-0">
     <div class="list-group list-group-flush">
@@ -35,14 +76,16 @@
           </div>
           
           <div class="d-flex">
-            <form method="POST" action="{% url 'documents:handle_edit' edit.id 'reject' %}" class="me-2 m-0 p-0" onsubmit="return confirm('Reject these changes?');">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-outline-danger fw-bold">Reject</button>
-            </form>
-            <form method="POST" action="{% url 'documents:handle_edit' edit.id 'accept' %}" class="m-0 p-0" onsubmit="return confirm('Accept and overwrite the original document?');">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-success fw-bold">Accept Changes</button>
-            </form>
+            <button type="button" class="btn btn-outline-danger fw-bold me-2" 
+                    data-reject-url="{% url 'documents:handle_edit' edit.id 'reject' %}" 
+                    onclick="openRejectModal(this)">
+              Reject
+            </button>
+            <button type="button" class="btn btn-success fw-bold" 
+                    data-accept-url="{% url 'documents:handle_edit' edit.id 'accept' %}" 
+                    onclick="openAcceptModal(this)">
+              Accept Changes
+            </button>
           </div>
         </div>
 
@@ -76,4 +119,8 @@
     </div>
   </div>
 </div>
+
+{% include 'documents/modals.html' %}
+<script src="{% static 'documents/js/review_scripts.js' %}"></script>
+
 {% endblock %}

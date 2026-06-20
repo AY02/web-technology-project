@@ -1,26 +1,45 @@
-<div class="card shadow-sm border-0 h-100">
+<div class="card shadow-sm border-0 h-100 flex-column">
+  
   <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
     <h5 class="text-primary fw-bold mb-0">Project Comments</h5>
   </div>
+  
   <div class="card-body d-flex flex-column">
-    <div class="flex-grow-1 overflow-auto mb-3" style="max-height: 280px;">
+    
+    <div class="flex-grow-1 overflow-auto mb-3 pe-2" style="max-height: 280px;">
       
-      <div class="bg-light p-3 rounded border mb-2">
-        <div class="d-flex justify-content-between mb-1">
-          <strong class="text-dark small">Colleague</strong>
-          <small class="text-muted">Yesterday</small>
+      {% for comment in project.comments.all %}
+      <div class="bg-light p-3 rounded border mb-2 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-1">
+          <strong class="text-dark small">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-person-fill me-1" viewBox="0 0 16 16"><path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3Zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/></svg>
+            {{ comment.user.username|default:"Deleted User" }}
+          </strong>
+          <small class="text-muted" style="font-size: 0.70rem;">{{ comment.creation_date|date:"d M Y, H:i" }}</small>
         </div>
-        <p class="mb-0 small text-muted">The dashboard UI looks great. Let's keep going!</p>
+        <p class="mb-0 small text-dark" style="white-space: pre-wrap;">{{ comment.content }}</p>
       </div>
+      {% empty %}
+      <div class="text-center p-4">
+        <p class="text-muted small mb-0">No comments yet. Start the conversation!</p>
+      </div>
+      {% endfor %}
       
     </div>
     
+    {% if can_comment %}
     <div class="mt-auto border-top pt-3">
-      <div class="input-group shadow-sm rounded">
-        <input type="text" class="form-control border-0 bg-light" placeholder="Write a comment...">
-        <button class="btn btn-primary fw-bold px-3" type="button">Send</button>
-      </div>
+      <form method="POST" action="{% url 'comments:add_comment' project.id %}">
+        {% csrf_token %}
+        <div class="input-group shadow-sm rounded">
+          <input type="text" name="content" class="form-control border-0 bg-light" placeholder="Write a comment..." required autocomplete="off">
+          <button class="btn btn-primary fw-bold px-3" type="submit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg>
+          </button>
+        </div>
+      </form>
     </div>
+    {% endif %}
     
   </div>
 </div>

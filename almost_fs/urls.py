@@ -15,4 +15,5 @@ urlpatterns = [
   path('projects/', include('projects.urls')),
   path('todos/', include('todos.urls')),
   path('documents/', include('documents.urls')),
+  path('comments/', include('comments.urls')),
 ]

@@ -1,0 +1,30 @@
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from django.contrib import messages
+
+from projects.models import Project
+from accounts.models import User
+
+from .forms import CommentForm
+
+
+@login_required
+@require_POST
+def add_comment(request, project_id):
+  project = get_object_or_404(Project, id=project_id)
+
+  if not request.user.can_comment_on(project):
+    messages.error(request, "You don't have permission to comment on this project.")
+    return redirect('dashboard_project', project_id=project.id)
+  
+  form = CommentForm(request.POST)
+  if form.is_valid():
+    comment = form.save(commit=False)
+    comment.project = project
+    comment.user = request.user
+    comment.save()
+  else:
+    messages.error(request, "Error posting comment. It cannot be empty.")
+
+  return redirect('dashboard_project', project_id=project.id)

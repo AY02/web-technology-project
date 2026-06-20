@@ -62,10 +62,15 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
     user = self.request.user
     context['can_edit_document'] = user.can_edit_document_in(doc.project_parent)
     context['can_propose_edit'] = user.can_propose_edit_of(doc)
+    
     # If the user can propose, we check if there is already a pending edit.
     if context['can_propose_edit']:
       pending_edit = doc.pending_edits.filter(collaborator=user, state='pen').first()
       context['user_pending_edit'] = pending_edit
+    # Check if the owner has pending edits
+    if context['can_edit_document'] and user.is_owner_of(doc.project_parent):
+      context['pending_edits_count'] = doc.pending_edits.filter(state='pen').count()
+    
     return context
 
 
@@ -164,15 +169,28 @@ class ReviewEditsView(LoginRequiredMixin, ListView):
     return super().dispatch(request, *args, **kwargs)
 
   def get_queryset(self):
-    """Filtering pending edit for this document."""
-    return PendingEdit.objects.filter(
+    """Filtering pending edit for this document. If there is a 'doc'' 
+    parameter, we filter only for the pending edits for that document"""
+    queryset = PendingEdit.objects.filter(
       document__project_parent=self.project,
       state='pen'
     ).select_related('document', 'collaborator').order_by('-creation_date')
+    
+    doc_id = self.request.GET.get('doc')
+    if doc_id:
+      queryset = queryset.filter(document_id=doc_id)
+    return queryset
 
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context['project'] = self.project
+    # eventual filtered doc id
+    context['filtered_doc_id'] = self.request.GET.get('doc')
+    # filtering only the documents of this project with pendings waiting
+    context['documents_with_edits'] = Document.objects.filter(
+      project_parent=self.project,
+      pending_edits__state='pen'
+    ).distinct()
     return context
 
 
