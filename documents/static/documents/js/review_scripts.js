@@ -1,5 +1,4 @@
-// Functions for error messages for the owner acceptance/rejection
-
+// Functions for error messages for the owner acceptance / rejection.
 function openRejectModal(btnElem) {
   document.getElementById('rejectForm').action = btnElem.dataset.rejectUrl;
   new bootstrap.Modal(document.getElementById('rejectModal')).show();

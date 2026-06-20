@@ -154,4 +154,3 @@ class ProjectPermission(models.Model):
   def __str__(self):
     # self.get_role_display(): view ==> Viewer
     return f'{self.user.username} - {self.get_role_display()} on {self.project.title} (Owner: {self.project.owner.username})'
-

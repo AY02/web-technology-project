@@ -53,6 +53,9 @@ class User(AbstractUser):
   def has_role_in(self, project):
     return self.get_role_in(project) is not None
   
+  def is_author_of(self, comment):
+    return self == comment.user
+  
   @base_permission_rules
   def can_view(self, project):
     """
@@ -80,6 +83,14 @@ class User(AbstractUser):
       self.is_coll_of(project) or
       self.is_owner_of(project)
     )
+
+  @base_permission_rules
+  def can_delete_comment(self, comment):
+    """
+    If a commentator writes inappropriate things, the project owner should be able to
+    delete the comment.
+    """
+    return self.is_author_of(comment) or self.is_owner_of(comment.project)
 
   @base_permission_rules
   def can_edit_project(self, project):

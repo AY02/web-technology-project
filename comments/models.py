@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings
 
-# Create your models here.
+
 class Comment(models.Model):
   # CASCADE: If we delete a project, we also delete the comments associated with it.
   project = models.ForeignKey(
@@ -19,10 +19,8 @@ class Comment(models.Model):
     related_name='user_comments'
   )
 
-  #title = models.CharField(max_length=128)
   content = models.TextField()
   creation_date = models.DateTimeField(auto_now_add=True)
-  #last_updated_date = models.DateTimeField(auto_now=True)
 
   class Meta:
     # By default, we sort from newest to oldest.
@@ -30,4 +28,4 @@ class Comment(models.Model):
 
   def __str__(self):
     author = self.user.username if self.user else 'User deleted'
-    return f'Comment of {author} on {self.project.title})'
+    return f'Comment of {author} on {self.project.title}'

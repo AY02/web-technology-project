@@ -60,7 +60,7 @@
   </div>
 </div>
 
-<!-- Error modal -->
+<!-- Error modal. -->
 <div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow-lg">
@@ -85,18 +85,18 @@
 
 
 <script>
-  // Auto scrolldown on comments sidebar
+  // Auto scrolldown on comments sidebar.
   document.addEventListener("DOMContentLoaded", function() {
     const chatBox = document.getElementById("chatScrollBox");
     if (chatBox) {
-      // Delay to ensure the browser has finished rendering the layout
+      // Delay to ensure the browser has finished rendering the layout.
       setTimeout(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
       }, 100);
     }
   });
 
-  // Open the delete comment modal
+  // Open the delete comment modal.
   function openDeleteCommentModal(btnElem) {
     const deleteUrl = btnElem.dataset.deleteUrl;
     document.getElementById('deleteCommentForm').action = deleteUrl;

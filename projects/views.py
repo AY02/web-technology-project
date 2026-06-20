@@ -97,7 +97,7 @@ def add_permission(request, project_id):
   project = get_object_or_404(Project, id=project_id)
     
   if not request.user.is_owner_of(project):
-    messages.error(request, "Only the project owner can manage access.")
+    messages.error(request, 'Only the project owner can manage access.')
     return redirect('dashboard_project', project_id=project.id)
 
   form = AddPermissionForm(request.POST)
@@ -107,19 +107,18 @@ def add_permission(request, project_id):
     readable_role = dict(form.fields['role'].choices).get(role, role)
     User = get_user_model()
 
-    # Check of user's existence
     try:
       target_user = User.objects.get(username=username)
     except User.DoesNotExist:
       messages.error(request, f"User '{username}' not found. Check the spelling.")
       return redirect('dashboard_project', project_id=project.id)
 
-    # Owner cannot invite himself
+    # Owner cannot invite himself.
     if target_user == request.user:
-      messages.warning(request, "You cannot assign roles to yourself.")
+      messages.warning(request, 'You cannot assign roles to yourself.')
       return redirect('dashboard_project', project_id=project.id)
 
-    # Creating or updating the permission
+    # Creating or updating the permission.
     try:
       ProjectPermission.objects.update_or_create(
         user=target_user,
@@ -127,13 +126,12 @@ def add_permission(request, project_id):
         defaults={'role': role}
       )
       messages.success(request, f"Successfully assigned the role of {readable_role} to '{username}'.")
-      
     except ValidationError as e:
-      error_msg = e.messages[0] if hasattr(e, 'messages') else str(e)
-      messages.error(request, error_msg)
-        
+      # Model-related errors.
+      messages.error(request, e.messages[0])
   else:
-    messages.error(request, "Invalid form submission.")
+    # Form-related errors.
+    messages.error(request, list(form.errors.values())[0][0])
 
   return redirect('dashboard_project', project_id=project.id)
 
@@ -144,10 +142,10 @@ def remove_permission(request, project_id, permission_id):
   project = get_object_or_404(Project, id=project_id)
   
   if not request.user.is_owner_of(project):
-    messages.error(request, "Only the project owner can manage access.")
+    messages.error(request, 'Only the project owner can manage access.')
     return redirect('dashboard_project', project_id=project.id)
 
-  # The permission must belong to this project
+  # The permission must belong to this project.
   permission = get_object_or_404(ProjectPermission, id=permission_id, project=project)
   username = permission.user.username
   
