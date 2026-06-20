@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Shared with me - AlmostFS{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5" style="max-width: 900px;">
+  
+  <div class="mb-4">
+    <a href="{% url 'dashboard' %}" class="text-decoration-none text-muted fw-bold">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/></svg>
+      Back to My Projects
+    </a>
+  </div>
+
+  <div class="d-flex align-items-center mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-people-fill text-primary me-3" viewBox="0 0 16 16">
+      <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216ZM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
+    </svg>
+    <h3 class="fw-bold mb-0">Shared with me</h3>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2 g-4">
+    {% for permission in shared_permissions %}
+    <div class="col">
+      <div class="card shadow-sm border-0 h-100 hover-shadow transition-all">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="fw-bold text-truncate mb-0">
+              <a href="{% url 'dashboard_project' permission.project.id %}" class="text-decoration-none text-dark stretched-link">
+                {{ permission.project.title }}
+              </a>
+            </h5>
+            
+            <span class="badge ms-2 
+              {% if permission.is_coll %}bg-success
+              {% elif permission.is_comm %}bg-warning text-dark
+              {% else %}bg-secondary{% endif %}">
+              {{ permission.get_role_display }}
+            </span>
+
+          </div>
+          <p class="text-muted small mb-0">
+            Owner: <strong>{{ permission.project.owner.username }}</strong>
+          </p>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+      <div class="text-muted">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-folder-x mb-3 opacity-50" viewBox="0 0 16 16"><path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181L15.546 8H14.54l.265-2.91A1 1 0 0 0 13.81 4H2.19a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91H9v1H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zm6.339-1.576A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/><path d="M11.854 10.146a.5.5 0 0 0-.707.708L12.293 12l-1.146 1.146a.5.5 0 0 0 .708.708L13 12.707l1.146 1.146a.5.5 0 0 0 .708-.708L13.707 12l1.146-1.146a.5.5 0 0 0-.708-.708L13 11.293l-1.146-1.146z"/></svg>
+        <h5>No shared projects</h5>
+        <p>You haven't been added to any projects yet.</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+  .hover-shadow:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important; }
+  .transition-all { transition: all .2s ease-in-out; }
+</style>
+{% endblock %}

@@ -4,7 +4,10 @@ from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.http import JsonResponse, Http404
 from django.core.exceptions import ValidationError
-from .models import Project
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from .models import Project, ProjectPermission
 from .forms import ProjectCreateForm, ProjectEditForm
 
 
@@ -120,3 +123,14 @@ def search_public_projects(request):
     })
 
   return JsonResponse({'results': results})
+
+
+class SharedProjectsListView(LoginRequiredMixin, ListView):
+  model = ProjectPermission 
+  template_name = 'projects/shared_projects.html'
+  context_object_name = 'shared_permissions'
+
+  def get_queryset(self):
+    return ProjectPermission.objects.filter(
+      user=self.request.user
+    ).select_related('project', 'project__owner').order_by('-project__creation_date')
