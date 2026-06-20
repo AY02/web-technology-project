@@ -24,6 +24,11 @@
             <h5 class="fw-bold text-dark mb-1">
               Document: <a href="{% url 'documents:document_detail' edit.document.id %}" target="_blank" class="text-decoration-none">{{ edit.document.title }}</a>
             </h5>
+            {% if edit.document.title != edit.modified_title %}
+            <div class="badge bg-warning text-dark mb-2 border border-dark border-opacity-25">
+              Proposed Title Change: {{ edit.modified_title }}
+            </div>
+            {% endif %}
             <small class="text-muted">
               Proposed by <strong>{{ edit.collaborator.username }}</strong> on {{ edit.creation_date|date:"d M Y, H:i" }}
             </small>

@@ -12,10 +12,10 @@
     </a>
     
     <div>
-      {% if is_owner %}
+      {% if can_edit_document %}
         <a href="{% url 'documents:edit_document' document.id %}" class="btn btn-outline-primary fw-bold me-2">Edit Document</a>
         <a href="{% url 'documents:delete_document' document.id %}" class="btn btn-outline-danger fw-bold">Delete</a>
-      {% elif can_propose and not user_pending_edit %}
+      {% elif can_propose_edit and not user_pending_edit %}
         <a href="{% url 'documents:propose_edit' document.id %}" class="btn btn-outline-success fw-bold">Propose Edit</a>
       {% endif %}
     </div>

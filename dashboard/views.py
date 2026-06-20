@@ -41,6 +41,7 @@ def dashboard_view(request, project_id=None):
   context = {
     'project': project,
     'can_view_parent': user.can_view_parent(project),
+    'can_edit_document': user.can_edit_document_in(project),
     'project_create_form': project_create_form,
     'project_edit_form': project_edit_form,
     'todo_form': todo_form,

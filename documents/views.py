@@ -8,7 +8,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.http import Http404
 from django.contrib.auth.mixins import LoginRequiredMixin
-
 from projects.models import Project
 from .models import Document, PendingEdit
 from .forms import DocumentForm, PendingEditForm
@@ -22,8 +21,8 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
   def dispatch(self, request, *args, **kwargs):
     """Security check before uploading the view."""
     self.project = get_object_or_404(Project, id=self.kwargs['project_id'])
-    if not self.project.can_edit_todo_document(request.user):
-      raise Http404("You do not have permission to create documents here.")
+    if not request.user.can_edit_document_in(self.project):
+      raise Http404('You do not have permission to create documents here.')
     return super().dispatch(request, *args, **kwargs)
 
   def get_context_data(self, **kwargs):
@@ -47,12 +46,13 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
   model = Document
   template_name = 'documents/document_detail.html'
   context_object_name = 'document'
+  pk_url_kwarg = 'id'
 
   def dispatch(self, request, *args, **kwargs):
     """Security check for users visibility on the project of the document."""
     doc = self.get_object()
-    if not doc.project_parent.can_view(request.user):
-      raise Http404("You do not have permission to view this document.")
+    if not request.user.can_view(doc.project_parent):
+      raise Http404('You do not have permission to view this document.')
     return super().dispatch(request, *args, **kwargs)
 
   def get_context_data(self, **kwargs):
@@ -60,10 +60,10 @@ class DocumentDetailView(LoginRequiredMixin, DetailView):
     context = super().get_context_data(**kwargs)
     doc = self.get_object()
     user = self.request.user
-    context['is_owner'] = doc.is_owner(user)
-    context['can_propose'] = doc.can_propose_edit(user)
-    # if the user can propose, we check if there is already a pending edit
-    if context['can_propose']:
+    context['can_edit_document'] = user.can_edit_document_in(doc.project_parent)
+    context['can_propose_edit'] = user.can_propose_edit_of(doc)
+    # If the user can propose, we check if there is already a pending edit.
+    if context['can_propose_edit']:
       pending_edit = doc.pending_edits.filter(collaborator=user, state='pen').first()
       context['user_pending_edit'] = pending_edit
     return context
@@ -73,39 +73,41 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
   model = Document
   form_class = DocumentForm
   template_name = 'documents/document_form.html'
+  pk_url_kwarg = 'id'
 
   def dispatch(self, request, *args, **kwargs):
     """Only the owner can directly edit the document."""
     doc = self.get_object()
-    if not doc.is_owner(request.user):
-      raise Http404("Only the owner can directly edit the document.")
+    if not request.user.can_edit_document_in(doc.project_parent):
+      raise Http404('Only the owner can directly edit the document.')
     return super().dispatch(request, *args, **kwargs)
 
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
     context['project'] = self.get_object().project_parent
-    context['is_update'] = True 
+    context['is_update'] = True
     return context
 
   def get_success_url(self):
-    messages.success(self.request, "Document updated successfully.")
-    return reverse('documents:document_detail', kwargs={'pk': self.object.pk})
+    messages.success(self.request, 'Document updated successfully.')
+    return reverse('documents:document_detail', kwargs={'id': self.object.id})
 
 
 class DocumentDeleteView(LoginRequiredMixin, DeleteView):
   model = Document
   template_name = 'documents/document_confirm_delete.html'
+  pk_url_kwarg = 'id'
 
   def dispatch(self, request, *args, **kwargs):
     """Only the owner can delete the document."""
     doc = self.get_object()
-    if not doc.is_owner(request.user):
-      raise Http404("Only the owner can delete this document.")
+    if not request.user.can_edit_document_in(doc.project_parent):
+      raise Http404('Only the owner can delete this document.')
     return super().dispatch(request, *args, **kwargs)
 
   def get_success_url(self):
     project_id = self.get_object().project_parent.id
-    messages.success(self.request, "Document deleted successfully.")
+    messages.success(self.request, 'Document deleted successfully.')
     return reverse('dashboard_project', kwargs={'project_id': project_id})
   
 
@@ -114,18 +116,18 @@ class ProposeEditView(LoginRequiredMixin, UpdateView):
   form_class = PendingEditForm
   template_name = 'documents/document_form.html'
 
-  def get_object(self, queryset=None):
-    """Searches for pending drafts, otherwhise it creates it."""
+  def get_object(self):
+    """Searches for pending drafts, otherwise it creates it."""
     self.document = get_object_or_404(Document, id=self.kwargs['document_id'])
-        
-    if not self.document.can_propose_edit(self.request.user):
-      raise Http404("You do not have permission to propose edits to this document.")
+
+    if not self.request.user.can_propose_edit_of(self.document):
+      raise Http404('You do not have permission to propose edits to this document.')
         
     obj, created = PendingEdit.objects.get_or_create(
       document=self.document,
       collaborator=self.request.user,
       state='pen',
-      # the defaults are the original title and content of the document
+      # The defaults are the original title and content of the document.
       defaults={
         'modified_title': self.document.title,
         'modified_content': self.document.content
@@ -135,21 +137,21 @@ class ProposeEditView(LoginRequiredMixin, UpdateView):
 
   def get_context_data(self, **kwargs):
     context = super().get_context_data(**kwargs)
-    # variables for the correct use of the templates
+    # Variables for the correct use of the templates.
     context['project'] = self.document.project_parent
     context['document'] = self.document
-    context['is_proposal'] = True 
+    context['is_proposal'] = True
     return context
 
   def form_valid(self, form):
-    messages.success(self.request, "Your edit proposal has been saved and is waiting for review.")
+    messages.success(self.request, 'Your edit proposal has been saved and is waiting for review.')
     return super().form_valid(form)
 
   def get_success_url(self):
-    return reverse('documents:document_detail', kwargs={'pk': self.document.id})
+    return reverse('documents:document_detail', kwargs={'id': self.document.id})
   
 
-# Owner's pending logic
+# Owner's pending logic.
 class ReviewEditsView(LoginRequiredMixin, ListView):
   model = PendingEdit
   template_name = 'documents/review_edits.html'
@@ -157,8 +159,8 @@ class ReviewEditsView(LoginRequiredMixin, ListView):
 
   def dispatch(self, request, *args, **kwargs):
     self.project = get_object_or_404(Project, id=self.kwargs['project_id'])
-    if not self.project.is_owner(request.user):
-      raise Http404("Only the project owner can review edits.")
+    if not request.user.can_edit_document_in(self.project):
+      raise Http404('Only the project owner can review edits.')
     return super().dispatch(request, *args, **kwargs)
 
   def get_queryset(self):
@@ -173,28 +175,33 @@ class ReviewEditsView(LoginRequiredMixin, ListView):
     context['project'] = self.project
     return context
 
+
 @login_required
 @require_POST
 def handle_pending_edit(request, edit_id, action):
   """
-  Handles the acceptance or the rejection of a proposal, 
-  given an action from the URL ('accept' or 'reject')
-  using the model's methods.
+  Handles the acceptance or the rejection of a proposal, given an action from the URL
+  ('accept' or 'reject') using the model's methods.
   """
   pending_edit = get_object_or_404(PendingEdit, id=edit_id)
   project = pending_edit.document.project_parent
 
-  # Permissions
-  if not project.is_owner(request.user):
-    raise Http404("Only the owner can handle edits.")
+  if not request.user.can_edit_document_in(project):
+    raise Http404('Only the owner can handle edits.')
 
   if action == 'accept':
     pending_edit.accept()
-    messages.success(request, f"Changes applied to '{pending_edit.document.title}'.")
+    messages.success(
+      request,
+      f"Changes applied to '{pending_edit.document.title}'."
+    )
   elif action == 'reject':
     pending_edit.reject()
-    messages.info(request, f"Proposed changes to '{pending_edit.document.title}' were rejected.")
+    messages.info(
+      request,
+      f"Proposed changes to '{pending_edit.document.title}' were rejected."
+    )
   else:
-    raise Http404("Invalid action.")
+    raise Http404('Invalid action.')
 
   return redirect('documents:review_edits', project_id=project.id)

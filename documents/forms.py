@@ -8,7 +8,7 @@ class DocumentForm(forms.ModelForm):
     widgets = {
       'title': forms.TextInput(attrs={
         'class': 'form-control form-control-lg bg-light border-0 mb-3', 
-        'placeholder': 'Document Title (e.g. Appunti_Lezione)'
+        'placeholder': 'Document Title (e.g. Lesson notes)'
       }),
       'content': forms.Textarea(attrs={
         'class': 'form-control bg-light border-0', 

@@ -92,8 +92,8 @@ class User(AbstractUser):
   @base_permission_rules
   def can_edit_todolist(self, todolist):
     """
-    The user can edit a todolist if and only if he is a collaborator of the parent
-    project, or is its owner.
+    The user can edit a todolist's entry if and only if he is a collaborator of the
+    parent project, or is its owner.
     """
     return (
       self.is_coll_of(todolist.project_parent) or
@@ -101,12 +101,15 @@ class User(AbstractUser):
     )
   
   @base_permission_rules
-  def can_edit_document(self, document):
+  def can_edit_document_in(self, project):
     """
-    The user can edit a document if and only if he is a collaborator of the parent
-    project, or is its owner.
+    The user can edit a project's document if and only if he is the owner.
     """
-    return (
-      self.is_coll_of(document.project_parent) or
-      self.is_owner_of(document.project_parent)
-    )
+    return self.is_owner_of(project)
+  
+  @base_permission_rules
+  def can_propose_edit_of(self, document):
+    """
+    The user can propose an edit if and only if he is a collaborator.
+    """
+    return self.is_coll_of(document.project_parent)
