@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'documents',
     'projects',
     'todos',
+    'dashboard'
 ]
 
 MIDDLEWARE = [

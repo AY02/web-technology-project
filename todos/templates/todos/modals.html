@@ -1,0 +1,60 @@
+{% load static %}
+<div class="modal fade" id="editTodoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-primary text-white border-0">
+        <h5 class="modal-title fw-bold">Edit Task</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="editTodoForm">
+        {% csrf_token %}
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted">Task Content</label>
+            <input type="text" name="content" id="editTodoContent" class="form-control bg-light" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted">Deadline (opt)</label>
+            <input type="date" name="deadline" id="editTodoDeadline" class="form-control bg-light">
+          </div>
+        </div>
+        <div class="modal-footer border-0 bg-light">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold px-4">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteTodoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-danger text-white border-0">
+        <h5 class="modal-title fw-bold">Delete Task</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" id="deleteTodoForm">
+        {% csrf_token %}
+        <div class="modal-body p-4 text-center">
+          <p class="mb-1 text-danger fw-bold">Are you absolutely sure?</p>
+          <p class="text-muted small">This action will permanently delete the selected task. This cannot be undone.</p>
+        </div>
+        <div class="modal-footer border-0 bg-light justify-content-center">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger fw-bold px-4">Yes, Delete Task</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const editTodoBaseUrl = "{% url 'edit_todo_entry' 0 %}".replace('0/', '');
+  const deleteTodoBaseUrl = "{% url 'delete_todo_entry' 0 %}".replace('0/', '');
+  const toggleTodoBaseUrl = "{% url 'toggle_todo_entry' 0 %}".replace('0/', '');
+</script>
+
+<!-- Dynamically fill the modal of both the edit of the todo entry and the delete of the todo entry. -->
+<!-- Checking down the checkbox of the todo entries (AJAX). -->
+<script src="{% static 'todos/js/todo_scripts.js' %}"></script>

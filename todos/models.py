@@ -46,7 +46,6 @@ class ToDoEntry(models.Model):
     super().save(*args, **kwargs)
 
   def is_expired(self):
-    '''Returns true if the deadline is expired.'''
     if self.deadline:
       return self.deadline.date() < timezone.now().date()
     return False

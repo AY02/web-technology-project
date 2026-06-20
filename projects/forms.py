@@ -1,7 +1,8 @@
 from django import forms
 from .models import Project
 
-class ProjectCreationForm(forms.ModelForm):
+
+class ProjectCreateForm(forms.ModelForm):
   def __init__(self, user=None, parent_project=None, *args, **kwargs):
     super().__init__(*args, **kwargs)
     

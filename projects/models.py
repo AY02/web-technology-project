@@ -39,11 +39,9 @@ class Project(models.Model):
   creation_date = models.DateTimeField(auto_now_add=True)
 
   def is_public(self):
-    '''Return True if the project is public.'''
     return self.visibility == 'pub'
 
   def is_private(self):
-    '''Return True if the project is private.'''
     return self.visibility == 'priv'
 
   def is_root(self):
@@ -51,60 +49,23 @@ class Project(models.Model):
     return self.parent is None
 
   def is_owner(self, user):
-    '''Return True if user is the owner.'''
     return self.owner == user
-
-  def get_user_role(self, user):
-    '''
-    Calculate a user's role for this project, traversing the project tree back to the
-    root if necessary. Returns: 'coll', 'comm', 'view', or None.
-    '''
-    curr_project = self
-    while curr_project is not None:
-      permission = curr_project.user_permissions.filter(user=user).first()
-      if permission:
-        return permission.role
-      curr_project = curr_project.parent
-    return None
   
   def bfs(self, include_root=True):
-    '''
+    """
     Performs a breadth-first search (BFS) to find all the IDs of child projects
     starting from the self parent ID. Returns a flat list of IDs (integers).
-    '''
+    """
     descendants = [self.id] if include_root else []
     queue = [self.id]
     while queue:
       children = list(Project.objects.filter(parent_id__in=queue).values_list(
-        'id', flat=True
+        'id',
+        flat=True
       ))
       descendants.extend(children)
       queue = children
     return descendants
-
-  def has_role(self, user):
-    '''Return True if user has a role.'''
-    return self.get_user_role(user) is not None
-  
-  def is_coll(self, user):
-    'Return True if user is a collaborator.'
-    return self.get_user_role(user) == 'coll'
-
-  def can_view(self, user):
-    '''Return True if user can view the project.'''
-    return self.is_owner(user) or self.is_public() or self.has_role(user)
-  
-  def can_edit_project(self, user):
-    '''Return True if user can edit the project.'''
-    return self.is_owner(user) and not self.is_root()
-
-  def can_edit_todo_document(self, user):
-    '''Return True if user can edit todo entries or documents.'''
-    return self.is_owner(user) or self.is_coll(user)
-
-  def can_comment(self, user):
-    '''Return True if user can comment on the project.'''
-    return self.is_owner(user) or self.get_user_role(user) in ['comm', 'coll']
 
   def clean(self):
     super().clean()
@@ -122,7 +83,7 @@ class Project(models.Model):
   
   def delete(self, *args, **kwargs):
     if self.is_root():
-      raise ValidationError('You can\'t delete a root project manually. Remove the owner if necessary.')
+      raise ValidationError("You can't delete a root project manually. Remove the owner if necessary.")
 
   class Meta:
     constraints = [
@@ -162,16 +123,16 @@ class ProjectPermission(models.Model):
   
   def is_view(self):
     return self.role == 'view'
-
+  
   def is_comm(self):
     return self.role == 'comm'
   
   def is_coll(self):
     return self.role == 'coll'
-  
+
   def clean(self):
     super().clean()
-    if self.project.is_owner(self.user):
+    if self.user.is_owner_of(self.project):
       raise ValidationError('The owner cannot have permissions on its own project.')
     if self.is_view() and self.project.is_public():
       raise ValidationError('Cannot assign the viewer role to a public project.')

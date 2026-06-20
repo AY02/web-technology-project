@@ -1,0 +1,22 @@
+{% load static %}
+<!-- Autocomplete search bar structure. -->
+<div class="mb-4 position-relative">
+  <form class="d-flex shadow-sm rounded" onsubmit="return false;">
+    <input id="searchInput" 
+           class="form-control form-control-lg border-0" 
+           type="search" 
+           placeholder="Search public projects..." 
+           aria-label="Search" 
+           autocomplete="off"
+           data-search-url="{% url 'search_public_projects' %}"
+           data-dashboard-url="{% url 'dashboard' %}">
+  </form>
+  
+  <!-- Hidden drop-down menu to show results -->
+  <div id="searchResults" class="list-group position-absolute w-100 shadow mt-1" style="z-index: 1050; display: none; max-height: 400px; overflow-y: auto;">
+    <!-- JS will populate this area -->
+  </div>
+</div>
+
+<!-- Live search (AJAX). -->
+<script src="{% static 'projects/js/search_bar.js' %}"></script>

@@ -1,0 +1,74 @@
+<div class="card shadow-sm border-0 h-100 flex-column">
+  <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+    <h5 class="text-primary fw-bold mb-0">To-Do List from {{project.title}}</h5>
+  </div>
+  <div class="card-body d-flex flex-column">
+    <div class="flex-grow-1 overflow-auto mb-3" style="max-height: 280px;">
+      <ul class="list-group list-group-flush">
+        {% for entry in todo_entries %}
+        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-2 border-bottom">
+          <div class="d-flex align-items-center">
+            <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" 
+                    {% if entry.is_completed %}checked{% endif %}
+                    {% if not todo_form %}disabled{% endif %} 
+                    data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
+            <label class="form-check-label text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}">
+              {{ entry.content }}
+              {% if entry.is_completed %}
+                <br><small class="badge bg-success fw-normal border mt-1">
+                  Completed: {{ entry.completion_date|date:"d M Y" }}
+                </small>
+              {% elif entry.deadline %}
+                <br><small class="badge bg-light {% if entry.is_expired %}text-danger{% else %}text-primary{% endif %} fw-normal border mt-1">
+                  {% if entry.is_expired %} Expired:{% else %} Expiring:{% endif %} {{ entry.deadline|date:"d M Y" }}
+                </small>
+              {% endif %}
+            </label>
+          </div>
+
+          {% if todo_form %}
+          <div class="d-flex">
+            <button type="button" class="btn btn-sm btn-outline-primary border-0 me-1" title="Edit Task"
+                    data-entry-id="{{ entry.id }}"
+                    data-entry-content="{{ entry.content }}"
+                    data-entry-deadline="{% if entry.deadline %}{{ entry.deadline|date:'Y-m-d' }}{% endif %}"
+                    onclick="openEditTodoModal(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+              </svg>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-danger border-0" title="Delete Task" 
+                    data-entry-id="{{ entry.id }}" 
+                    onclick="openDeleteTodoModal(this)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.813 1H3.188l-.83 10.368A1 1 0 0 0 3.352 15h9.296a1 1 0 0 0 .994-1.132L12.813 3.5Zm-8.52 1a.5.5 0 0 1 .494.449l.5 8.5a.5.5 0 1 1-.998.06l-.5-8.5a.5.5 0 0 1 .504-.51Zm5.414.054a.5.5 0 0 1 .5.446l.5 8.5a.5.5 0 0 1-.998.06l-.5-8.5a.5.5 0 0 1 .498-.506Z"/>
+              </svg>
+            </button>
+          </div>
+          {% endif %}
+        </li>
+        {% empty %}
+        <li class="list-group-item border-0 px-0 text-muted small">
+          No tasks yet. Add one below!
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {% if todo_form %}
+    <div class="mt-auto border-top pt-3">
+      <form method="post" action="{% url 'add_todo_entry' project.todolist.id %}">
+        {% csrf_token %}
+        <div class="input-group shadow-sm rounded mb-2">
+          {{ todo_form.content }}
+        </div>
+        <div class="input-group shadow-sm rounded">
+          <span class="input-group-text bg-white border-0 text-muted small">Deadline (opt):</span>
+          {{ todo_form.deadline }}
+          <button class="btn btn-primary fw-bold px-4" type="submit">+</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>

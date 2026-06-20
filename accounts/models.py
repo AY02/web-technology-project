@@ -66,6 +66,10 @@ class User(AbstractUser):
     )
   
   @base_permission_rules
+  def can_view_parent(self, project):
+    return not project.is_root() and self.can_view(project.parent)
+  
+  @base_permission_rules
   def can_comment_on(self, project):
     """
     The user can comment on a project if and only if he is a commentator, a
