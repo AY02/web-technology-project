@@ -85,6 +85,12 @@ class DocumentUpdateView(LoginRequiredMixin, UpdateView):
     doc = self.get_object()
     if not request.user.can_edit_document_in(doc.project_parent):
       raise Http404('Only the owner can directly edit the document.')
+    if doc.pending_edits.filter(state='pen').exists():
+      messages.warning(
+        request, 
+        'You cannot edit this document while there are pending edits. Please review them first.'
+      )
+      return redirect('documents:document_detail', id=doc.id)
     return super().dispatch(request, *args, **kwargs)
 
   def get_context_data(self, **kwargs):
@@ -192,7 +198,79 @@ class ReviewEditsView(LoginRequiredMixin, ListView):
       pending_edits__state='pen'
     ).distinct()
     return context
+  
+class EditHistoryView(LoginRequiredMixin, ListView):
+  model = PendingEdit
+  template_name = 'documents/edit_history.html'
+  context_object_name = 'historical_edits'
 
+  def dispatch(self, request, *args, **kwargs):
+    """Security check: Only the owner can view the edit history."""
+    self.project = get_object_or_404(Project, id=self.kwargs['project_id'])
+    if not request.user.can_edit_document_in(self.project):
+      raise Http404('Only the project owner can view the edit history.')
+    return super().dispatch(request, *args, **kwargs)
+
+  def get_queryset(self):
+    """Fetch all accepted or rejected edits for this project."""
+    # Note: Make sure 'acc' and 'rej' match your exact model choices!
+    qs = PendingEdit.objects.filter(
+      document__project_parent=self.project,
+      state__in=['acc', 'rej'] 
+    ).select_related('document', 'collaborator').order_by('-creation_date')
+    
+    # Keep the filter functionality for the history too
+    doc_id = self.request.GET.get('doc')
+    if doc_id:
+      qs = qs.filter(document_id=doc_id)
+        
+    return qs
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['project'] = self.project
+    context['filtered_doc_id'] = self.request.GET.get('doc')
+    
+    # Fetch documents that have a history for the dropdown filter
+    context['documents_with_history'] = Document.objects.filter(
+      project_parent=self.project,
+      pending_edits__state__in=['acc', 'rej']
+    ).distinct()
+    return context
+
+
+class EditHistoryView(LoginRequiredMixin, ListView):
+  model = PendingEdit
+  template_name = 'documents/edit_history.html'
+  context_object_name = 'historical_edits'
+
+  def dispatch(self, request, *args, **kwargs):
+    self.project = get_object_or_404(Project, id=self.kwargs['project_id'])
+    if not request.user.can_edit_document_in(self.project):
+      raise Http404('Only the project owner can view the edit history.')
+    return super().dispatch(request, *args, **kwargs)
+
+  def get_queryset(self):
+    """Fetch all accepted or rejected edits for this project."""
+    qs = PendingEdit.objects.filter(
+      document__project_parent=self.project,
+      state__in=['acc', 'rej'] 
+    ).select_related('document', 'collaborator').order_by('-creation_date')
+    # Keep the filter functionality for the history too
+    doc_id = self.request.GET.get('doc')
+    if doc_id:
+      qs = qs.filter(document_id=doc_id)
+    return qs
+
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    context['project'] = self.project
+    context['filtered_doc_id'] = self.request.GET.get('doc')
+    context['documents_with_history'] = Document.objects.filter(
+      project_parent=self.project,
+      pending_edits__state__in=['acc', 'rej']
+    ).distinct()
+    return context
 
 @login_required
 @require_POST
