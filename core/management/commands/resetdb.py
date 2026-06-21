@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from projects.models import Project, ProjectPermission
 from django.utils import timezone
 from todos.models import ToDoEntry
-from documents.models import Document
+from documents.models import Document, PendingEdit
 from comments.models import Comment
 import re, datetime
 
@@ -223,11 +223,62 @@ class Command(BaseCommand):
         'Key talking points for the presentation. Focus heavily on the custom permissions engine, the database constraints (UniqueConstraint), and the seamless AJAX integrations.'
       )
     ]
+    documents = {}
     for title, content in web_tech_0_documents:
-      Document.objects.create(project_parent=web_technologies_0, title=title, content=content) 
+      doc = Document.objects.create(project_parent=web_technologies_0, title=title, content=content)
+      documents[title] = doc
     self.stdout.write("Created Alessio's Web Technologies documents.")
 
-    # Creating comments between Alessio and Christian for 'Web Technologies'.
+    # Creating pending edits from Christian for Alessio's 'Web Technologies'.
+    web_tech_0_pending_edits = [
+      (
+        documents['Bootstrap 5 UI/UX Guidelines'],
+        users[1],
+        'Bootstrap 5 UI/UX Guidelines (Updated)',
+        'Design system notes. Cards used for layout. Flexbox utilized heavily (flex-grow, flex-shrink) for responsive list items. Added min-height: 0 to containers to fix overflow issues and allow proper scrolling.',
+        -20,
+        'acc'
+      ),
+      (
+        documents['AJAX Endpoints Documentation'],
+        users[1],
+        'AJAX Stuff', 
+        'Just some notes on AJAX. CSRF tokens are carefully passed in the headers.',
+        -18,
+        'rej'
+      ),
+      (
+        documents['AJAX Endpoints Documentation'],
+        users[1],
+        'AJAX Endpoints Documentation', 
+        'Details on the asynchronous JavaScript calls used for toggling To-Do entries dynamically. Added script to extract the CSRF token from cookies using getCookie("csrftoken") to prevent 403 Forbidden errors.',
+        -14,
+        'pen'
+      ),
+      (
+        documents['ResetDB Command Notes'],
+        users[1],
+        'ResetDB Command Notes (Timezone Fix)',
+        'Custom management command to flush the database and repopulate it. Fixed the TypeError by ensuring we compare datetime objects correctly, removing the naive .date() calls.',
+        -10,
+        'acc'
+      ),
+      (
+        documents['Database Schema Design'],
+        users[1],
+        'Database Schema & ORM Design',
+        'Entity-Relationship notes. Project has a 1-to-1 with ToDoList. ToDoList has a 1-to-N with ToDoEntry. Users have a M-to-N with Projects through ProjectPermission. Added UniqueConstraint to prevent duplicate task names.',
+        -5,
+        'pen'
+      )
+    ]
+    for document, collaborator, title, content, days_offset, state in web_tech_0_pending_edits:
+      edit_date = today + datetime.timedelta(days=days_offset)
+      new_edit = PendingEdit.objects.create(document=document, collaborator=collaborator, modified_title=title, modified_content=content, state=state)
+      PendingEdit.objects.filter(id=new_edit.id).update(creation_date=edit_date)
+    self.stdout.write('Created a mix of pending, accepted, and rejected edits.')
+
+    # Creating comments between Alessio and Christian for Alessio's 'Web Technologies'.
     web_tech_0_comments = [
       (users[0], "Ho appena pushato i modelli base per i progetti e le todolist. Dacci un'occhiata quando puoi.", -29),
       (users[1], "Visti. Ottima l'idea della relazione OneToOne per le todolist, ci risparmia un sacco di query inutili.", -28),
@@ -255,6 +306,6 @@ class Command(BaseCommand):
       creation_date = today + datetime.timedelta(days=days_offset)
       new_comment = Comment.objects.create(project=web_technologies_0, user=user, content=content)
       Comment.objects.filter(id=new_comment.id).update(creation_date=creation_date)
-    self.stdout.write("Created comments between Alessio and Christian.")
+    self.stdout.write('Created comments between Alessio and Christian.')
 
     self.stdout.write(self.style.SUCCESS('Database successfully reinitialized!'))
