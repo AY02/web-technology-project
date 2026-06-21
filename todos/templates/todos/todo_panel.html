@@ -1,33 +1,40 @@
 <div class="card shadow-sm border-0 h-100 flex-column">
   <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
-    <h5 class="text-primary fw-bold mb-0">To-Do List from {{project.title}}</h5>
+    <h5 class="text-primary fw-bold mb-0">To-Do List from {{ project.title }}</h5>
   </div>
+  
   <div class="card-body d-flex flex-column">
-    <div class="flex-grow-1 overflow-auto mb-3" style="max-height: 280px;">
+    <div class="flex-grow-1 overflow-auto mb-3" style="min-height: 0;">
       <ul class="list-group list-group-flush">
+        
         {% for entry in todo_entries %}
-        <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 py-2 border-bottom">
-          <div class="d-flex align-items-center">
-            <input class="form-check-input me-3" type="checkbox" id="todo_{{ entry.id }}" 
+        <li class="list-group-item d-flex justify-content-between align-items-start border-0 ps-0 pe-2 py-2 border-bottom">
+          
+          <div class="d-flex align-items-start w-100 me-2">
+            <input class="form-check-input flex-shrink-0 mt-1 me-3" type="checkbox" id="todo_{{ entry.id }}" 
                     {% if entry.is_completed %}checked{% endif %}
                     {% if not todo_form %}disabled{% endif %} 
-                    data-entry-id="{{ entry.id }}" onclick="toggleTask(this)">
-            <label class="form-check-label text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}">
+                    data-entry-id="{{ entry.id }}" onchange="toggleTask(this)">
+            
+            <label class="form-check-label w-100 d-block text-break text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}" style="cursor: pointer;">
               {{ entry.content }}
-              {% if entry.is_completed %}
-                <br><small class="badge bg-success fw-normal border mt-1">
-                  Completed: {{ entry.completion_date|date:"d M Y" }}
-                </small>
-              {% elif entry.deadline %}
-                <br><small class="badge bg-light {% if entry.is_expired %}text-danger{% else %}text-primary{% endif %} fw-normal border mt-1">
-                  {% if entry.is_expired %} Expired:{% else %} Expiring:{% endif %} {{ entry.deadline|date:"d M Y" }}
-                </small>
-              {% endif %}
+              
+              <div class="d-block mt-1">
+                {% if entry.is_completed %}
+                  <small class="badge bg-success fw-normal border">
+                    Completed: {{ entry.completion_date|date:"d M Y" }}
+                  </small>
+                {% elif entry.deadline %}
+                  <small class="badge bg-light {% if entry.is_expired %}text-danger{% else %}text-primary{% endif %} fw-normal border">
+                    {% if entry.is_expired %}Expired:{% else %}Expiring:{% endif %} {{ entry.deadline|date:"d M Y" }}
+                  </small>
+                {% endif %}
+              </div>
             </label>
           </div>
 
           {% if todo_form %}
-          <div class="d-flex">
+          <div class="d-flex flex-shrink-0">
             <button type="button" class="btn btn-sm btn-outline-primary border-0 me-1" title="Edit Task"
                     data-entry-id="{{ entry.id }}"
                     data-entry-content="{{ entry.content }}"
@@ -46,17 +53,19 @@
             </button>
           </div>
           {% endif %}
+          
         </li>
         {% empty %}
         <li class="list-group-item border-0 px-0 text-muted small">
           No tasks yet. Add one below!
         </li>
         {% endfor %}
+        
       </ul>
     </div>
 
     {% if todo_form %}
-    <div class="mt-auto border-top pt-3">
+    <div class="border-top pt-3">
       <form method="post" action="{% url 'add_todo_entry' project.todolist.id %}">
         {% csrf_token %}
         <div class="mb-2 shadow-sm rounded">
@@ -69,5 +78,6 @@
       </form>
     </div>
     {% endif %}
+    
   </div>
 </div>
