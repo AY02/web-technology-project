@@ -1,13 +1,38 @@
 from django.test import TestCase
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 from accounts.models import User
 from projects.models import Project, ProjectPermission
 from documents.models import Document, PendingEdit
 
 # Create your tests here.
 
+class BasicDocumentTests(TestCase):
+  def setUp(self):
+    self.user = User.objects.create_user(username='testuser', password='password')
+    self.root = Project.objects.get(owner=self.user, parent=None)
+
+  def test_document_creation_success(self):
+    doc = Document.objects.create(
+      project_parent=self.root,
+      title='My first document',
+      content='Hello World!'
+    )
+    # Check that the document was saved into the database
+    self.assertEqual(Document.objects.count(), 1)
+    self.assertEqual(doc.title, 'My first document')
+
+  def test_document_requires_title(self):
+    doc = Document(
+      project_parent=self.root, 
+      title='', 
+      content='Some content'
+    )
+    with self.assertRaises(ValidationError):
+      doc.full_clean()
+
+
 class PendingEditWorkflowTests(TestCase):
-  
   def setUp(self):
     # Create the owner, a collaborator, and an unauthorized stranger
     self.owner = User.objects.create_user(username='owner', password='pwd')
@@ -67,3 +92,7 @@ class PendingEditWorkflowTests(TestCase):
     self.assertEqual(pending_edit.state, 'acc')
     self.assertEqual(self.doc.title, 'New Title')
     self.assertEqual(self.doc.content, 'New Content')
+    # Checking the proposal appears in the history view section
+    history_url = reverse('documents:edit_history', args=[self.root.id])
+    response = self.client.get(history_url)
+    self.assertIn(pending_edit, response.context['historical_edits'])
