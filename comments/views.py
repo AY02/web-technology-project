@@ -34,7 +34,7 @@ def delete_comment(request, comment_id):
   comment = get_object_or_404(Comment, id=comment_id)
   project_id = comment.project.id
 
-  if request.user.can_delete_comment():
+  if request.user.can_delete_comment(comment):
     comment.delete()
     messages.success(request, 'Comment deleted successfully.')
   else:
