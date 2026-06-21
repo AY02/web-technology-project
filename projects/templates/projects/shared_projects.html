@@ -19,42 +19,42 @@
     <h3 class="fw-bold mb-0">Shared with me</h3>
   </div>
 
-  <div class="row row-cols-1 row-cols-md-2 g-4">
-    {% for permission in shared_permissions %}
-    <div class="col">
-      <div class="card shadow-sm border-0 h-100 hover-shadow transition-all">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="fw-bold text-truncate mb-0">
-              <a href="{% url 'dashboard_project' permission.project.id %}" class="text-decoration-none text-dark stretched-link">
-                {{ permission.project.title }}
-              </a>
-            </h5>
-            
-            <span class="badge ms-2 
-              {% if permission.is_coll %}bg-success
-              {% elif permission.is_comm %}bg-warning text-dark
-              {% else %}bg-secondary{% endif %}">
-              {{ permission.get_role_display }}
-            </span>
+  {% if shared_permissions %}
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+      {% for permission in shared_permissions %}
+      <div class="col">
+        <div class="card shadow-sm border-0 h-100 hover-shadow transition-all">
+          <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="fw-bold text-truncate mb-0">
+                <a href="{% url 'dashboard_project' permission.project.id %}" class="text-decoration-none text-dark stretched-link">
+                  {{ permission.project.title }}
+                </a>
+              </h5>
+              
+              <span class="badge ms-2 
+                {% if permission.is_coll %}bg-success
+                {% elif permission.is_comm %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">
+                {{ permission.get_role_display }}
+              </span>
 
+            </div>
+            <p class="text-muted small mb-0">
+              Owner: <strong>{{ permission.project.owner.username }}</strong>
+            </p>
           </div>
-          <p class="text-muted small mb-0">
-            Owner: <strong>{{ permission.project.owner.username }}</strong>
-          </p>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-      <div class="text-muted">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-folder-x mb-3 opacity-50" viewBox="0 0 16 16"><path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181L15.546 8H14.54l.265-2.91A1 1 0 0 0 13.81 4H2.19a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91H9v1H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zm6.339-1.576A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/><path d="M11.854 10.146a.5.5 0 0 0-.707.708L12.293 12l-1.146 1.146a.5.5 0 0 0 .708.708L13 12.707l1.146 1.146a.5.5 0 0 0 .708-.708L13.707 12l1.146-1.146a.5.5 0 0 0-.708-.708L13 11.293l-1.146-1.146z"/></svg>
-        <h5>No shared projects</h5>
-        <p>You haven't been added to any projects yet.</p>
-      </div>
+  {% else %}
+    <div class="d-flex flex-column justify-content-center align-items-center text-center text-muted" style="min-height: 50vh;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-folder-x mb-4 opacity-50" viewBox="0 0 16 16"><path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181L15.546 8H14.54l.265-2.91A1 1 0 0 0 13.81 4H2.19a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91H9v1H2.826a2 2 0 0 1-1.991-1.819l-.637-7a1.99 1.99 0 0 1 .342-1.31zm6.339-1.576A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139C1.72 3.042 1.95 3 2.19 3h5.396l-.707-.707z"/><path d="M11.854 10.146a.5.5 0 0 0-.707.708L12.293 12l-1.146 1.146a.5.5 0 0 0 .708.708L13 12.707l1.146 1.146a.5.5 0 0 0 .708-.708L13.707 12l1.146-1.146a.5.5 0 0 0-.708-.708L13 11.293l-1.146-1.146z"/></svg>
+      <h4 class="fw-bold text-dark">No shared projects</h4>
+      <p class="fs-6">You haven't been added to any projects yet.</p>
     </div>
-    {% endfor %}
-  </div>
+  {% endif %}
 </div>
 
 <style>

@@ -18,7 +18,8 @@ class ToDoEntryForm(forms.ModelForm):
         'required': True
       }),
       'deadline': forms.DateInput(attrs={
-        'class': 'form-control border-0 bg-light',
+        'class': 'form-control border-0 bg-light flatpickr-date',
+        'placeholder': 'Add deadline (opt)...',
         'type': 'date'
       })
     }
