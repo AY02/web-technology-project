@@ -3,9 +3,8 @@ from django.core.management import call_command
 from django.contrib.auth import get_user_model
 from projects.models import Project, ProjectPermission
 from django.utils import timezone
-import datetime
 from todos.models import ToDoEntry
-import re
+import re, datetime
 
 
 User = get_user_model()
@@ -39,18 +38,16 @@ class Command(BaseCommand):
     #   project is also automatically created.
     # - Similarly, whenever a project is created, its todo list is created.
     full_names = [
-      {'first_name': 'Alessio', 'last_name': 'Yang'},         # 0
-      {'first_name': 'Christian', 'last_name': 'Zanetti'},    # 1
-      {'first_name': 'Federico', 'last_name': 'Giansoldati'}, # 2
-      {'first_name': 'Marco', 'last_name': 'Dondi'},          # 3
-      {'first_name': 'Luca', 'last_name': 'Ferretti'},        # 4
-      {'first_name': 'Andrea', 'last_name': 'Corsini'},       # 5
-      {'first_name': 'Mauro', 'last_name': 'Dell\'Amico'},    # 6
+      ('Alessio', 'Yang'),          # 0
+      ('Christian', 'Zanetti'),     # 1
+      ('Federico', 'Giansoldati'),  # 2
+      ('Marco', 'Dondi'),           # 3
+      ('Luca', 'Ferretti'),         # 4
+      ('Andrea', 'Corsini'),        # 5
+      ('Mauro', "Dell'Amico")       # 6
     ]
     users = []
-    for full_name in full_names:
-      first_name = full_name['first_name']
-      last_name = full_name['last_name']
+    for first_name, last_name in full_names:
       # Remove anything that isn't a letter, number, underscore, or dot.
       username = f'{first_name.lower()}.{last_name.lower()}'
       username = re.sub(r'[^a-zA-Z0-9_.]', '', username)
@@ -146,37 +143,39 @@ class Command(BaseCommand):
     self.stdout.write('Created project permissions.')
 
     # Creating todo entries for Alessio's 'Web Technologies'.
-    web_tech_0_deadline = datetime.date(2026, 6, 22)
-    today = timezone.now().date()
+    web_tech_0_deadline = timezone.make_aware(datetime.datetime(2026, 6, 22, 0, 0, 0))
+    today = timezone.now()
     web_tech_0_todo_entries = [
-      ("Create and setup project", -30)
-      ("Implement models", -29),
-      ("Implement signals", -28),
-      ("Implement resetdb command", -27),
-      ("Create authentication system", -26),
-      ("Create homepage and authentication UI", -25),
-      ("Implement project CRUD", -24),
-      ("Create dashboard, project sidebar and comment sidebar templates", -23),
-      ("Implement todo entry CRUD", -22),
-      ("Implement todo toggle with AJAX", -21),
-      ("Implement document CRUD and template", -20),
-      ("Implement comment CRUD and template", -19),
-      ("Implement calendar view and template", -18),
-      ("Implement pending edit system", -17),
-      ("Create GUI for owner to assign permissions", -16),
-      ("Create a search bar with suggestions for public projects using AJAX", -15),
-      ("Create GUI to show edit history on a document", -14),
-      ("Create GUI for permission assignment", -13)
+      ('Create and setup project', -30),
+      ('Implement models', -29),
+      ('Implement signals', -28),
+      ('Implement resetdb command', -27),
+      ('Create authentication system', -26),
+      ('Create homepage and authentication UI', -25),
+      ('Implement project CRUD', -24),
+      ('Create dashboard, project sidebar and comment sidebar templates', -23),
+      ('Implement todo entry CRUD', -22),
+      ('Implement todo toggle with AJAX', -21),
+      ('Implement document CRUD and template', -20),
+      ('Implement comment CRUD and template', -19),
+      ('Implement calendar view and template', -18),
+      ('Implement pending edit system', -17),
+      ('Create GUI for owner to assign permissions', -16),
+      ('Create a search bar with suggestions for public projects using AJAX', -15),
+      ('Create GUI to show edit history on a document', -14),
+      ('Create GUI for permission assignment', -13)
     ]
-
     for todo_entry, days_offset in web_tech_0_todo_entries:
       task_deadline = web_tech_0_deadline + datetime.timedelta(days=days_offset)
+      is_completed = task_deadline < today
+      completion_date = task_deadline if is_completed else None
       ToDoEntry.objects.create(
-        todo_list=web_technologies_0.todolist,
+        todo=web_technologies_0.todolist,
         content=todo_entry,
         deadline=task_deadline,
-        is_completed=True,
-        completion_date=task_deadline
+        is_completed=is_completed,
+        completion_date=completion_date
       )
+    self.stdout.write("Created Alessio's Web Technologies todo entries.")
 
     self.stdout.write(self.style.SUCCESS('Database successfully reinitialized!'))
