@@ -24,6 +24,8 @@ class Command(BaseCommand):
     self.stdout.write('Database emptied.')
     self.stdout.write('Creating static records...')
 
+    today = timezone.now()
+
     # Creating the admin.
     admin = User.objects.create_superuser(
       username='admin', 
@@ -146,7 +148,6 @@ class Command(BaseCommand):
 
     # Creating todo entries for Alessio's 'Web Technologies'.
     web_tech_0_deadline = timezone.make_aware(datetime.datetime(2026, 6, 22, 0, 0, 0))
-    today = timezone.now()
     web_tech_0_todo_entries = [
       ('Create and setup project', -30),
       ('Implement models', -29),
