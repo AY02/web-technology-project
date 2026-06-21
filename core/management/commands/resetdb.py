@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from projects.models import Project, ProjectPermission
 from django.utils import timezone
 from todos.models import ToDoEntry
+from documents.models import Document
+from comments.models import Comment
 import re, datetime
 
 
@@ -166,16 +168,93 @@ class Command(BaseCommand):
       ('Create GUI for permission assignment', -13)
     ]
     for todo_entry, days_offset in web_tech_0_todo_entries:
-      task_deadline = web_tech_0_deadline + datetime.timedelta(days=days_offset)
-      is_completed = task_deadline < today
-      completion_date = task_deadline if is_completed else None
+      deadline = web_tech_0_deadline + datetime.timedelta(days=days_offset)
+      is_completed = deadline < today
+      completion_date = deadline if is_completed else None
       ToDoEntry.objects.create(
         todo=web_technologies_0.todolist,
         content=todo_entry,
-        deadline=task_deadline,
+        deadline=deadline,
         is_completed=is_completed,
         completion_date=completion_date
       )
     self.stdout.write("Created Alessio's Web Technologies todo entries.")
+
+    # Creating documents for Alessio's 'Web Technologies'.
+    web_tech_0_documents = [
+      (
+        'Project Requirements & Specifications', 
+        'Overview of AlmostFS features: hierarchical projects, permission inheritance, todo lists, and collaborative document editing using Django.'
+      ),
+      (
+        'Database Schema Design', 
+        'Entity-Relationship notes. Project has a 1-to-1 with ToDoList. ToDoList has a 1-to-N with ToDoEntry. Users have a M-to-N with Projects through ProjectPermission.'
+      ),
+      (
+        'Django Signals Implementation', 
+        'Documentation on the post_save signals used to automatically generate the root project for new users and ToDoLists for new projects without raising IntegrityErrors.'
+      ),
+      (
+        'Bootstrap 5 UI/UX Guidelines', 
+        'Design system notes. Cards used for layout. Flexbox utilized heavily (flex-grow, flex-shrink) for responsive list items, sidebars, and text truncation.'
+      ),
+      (
+        'Authentication & Security', 
+        'User model overrides and security. Ensured passwords are hashed using create_user. Implemented login, logout, and registration forms inheriting from UserCreationForm.'
+      ),
+      (
+        'AJAX Endpoints Documentation', 
+        'Details on the asynchronous JavaScript calls used for toggling To-Do entries dynamically without reloading the page. CSRF tokens are carefully passed in the headers.'
+      ),
+      (
+        'Permission Hierarchy Algorithm', 
+        "Logic for calculating 'effective' roles. If a user is a Collaborator on a parent project, the system must traverse the tree to propagate visibility and permissions."
+      ),
+      (
+        'Pending Edits System Logic', 
+        'How document reviews work. Edits are saved in a temporary state until the project owner or a qualified collaborator approves them via the review dashboard.'
+      ),
+      (
+        'ResetDB Command Notes', 
+        'Custom management command to flush the database and repopulate it with static test data, maintaining realistic timezone-aware dates (timezone.make_aware).'
+      ),
+      (
+        'Final Exam Presentation Pitch', 
+        'Key talking points for the presentation. Focus heavily on the custom permissions engine, the database constraints (UniqueConstraint), and the seamless AJAX integrations.'
+      )
+    ]
+    for title, content in web_tech_0_documents:
+      Document.objects.create(project_parent=web_technologies_0, title=title, content=content) 
+    self.stdout.write("Created Alessio's Web Technologies documents.")
+
+    # Creating comments between Alessio and Christian for 'Web Technologies'.
+    web_tech_0_comments = [
+      (users[0], "Ho appena pushato i modelli base per i progetti e le todolist. Dacci un'occhiata quando puoi.", -29),
+      (users[1], "Visti. Ottima l'idea della relazione OneToOne per le todolist, ci risparmia un sacco di query inutili.", -28),
+      (users[0], "Esatto. Tra l'altro ho aggiunto i constraint per i nomi duplicati sui task, così blindiamo il database a livello di ORM.", -28),
+      (users[1], 'Ho notato che il signal per la creazione automatica della root e delle liste funziona bene. Ma cosa succede se eliminiamo un utente?', -26),
+      (users[0], "Tutto l'albero va in CASCADE e si pulisce da solo. Ho fatto un paio di test in console e sembra reggere perfettamente.", -26),
+      (users[1], "Ottimo. Senti, per l'autenticazione usiamo il form standard di Django o ne facciamo uno custom?", -24),
+      (users[0], 'Facciamo un custom form che eredita da UserCreationForm, altrimenti le password ci finiscono in chiaro nel db (storia vera, ci stavo per cascare ahah).', -24),
+      (users[1], 'Ahah, il classico errore da manuale. Va bene, mi occupo io del template di login con Bootstrap 5.', -23),
+      (users[0], 'Ho sistemato il comando resetdb. Ora genera anche le scadenze dinamiche usando timezone.make_aware, niente più warning gialli.', -21),
+      (users[1], 'Meno male! Quei warning sui fusi orari mi stavano distruggendo gli occhi nel terminale ogni volta che rigeneravo il db.', -21),
+      (users[1], "Sulla dashboard, la barra laterale dei progetti non prende tutta l'altezza dello schermo. Provo a sistemarla con flex-grow.", -18),
+      (users[0], "Attento, usa 'min-height: 0' sul contenitore della lista, altrimenti Flexbox sbrocca quando c'è l'overflow. Ci ho sbattuto la testa ieri.", -18),
+      (users[1], 'Perfetto, ha funzionato al primo colpo! Ho anche aggiunto il text-truncate per i titoli dei documenti troppo lunghi.', -17),
+      (users[0], 'La vista per il toggle dei task in AJAX è pronta. Ho usato onchange sulla checkbox invece di onclick, così prende anche i click sulla label.', -15),
+      (users[1], "La provo subito. Ricordati di passare il csrf_token nell'header della fetch AJAX, altrimenti Django ci blocca la POST con un errore 403.", -15),
+      (users[0], "Giusto, l'ho aggiunto nello script base. Ho anche messo un po' di transizioni CSS sui badge Completed/Expired così è più fluido.", -14),
+      (users[1], 'Senti, per il sistema dei permessi... come gestiamo il ruolo effettivo se uno è sia Viewer che Collaborator su rami diversi?', -10),
+      (users[0], "Vince sempre il permesso più alto. Se sei Collaborator sul parent, l'algoritmo te lo propaga a cascata scavalcando eventuali restrizioni locali.", -10),
+      (users[1], 'Ha senso. A proposito, occhio che se provo a eliminare questo commento mi dà errore: User.can_delete_comment() missing 1 required positional argument.', -5),
+      (users[0], "Ah, me ne ero accorto! Avevo dimenticato di passare l'oggetto commento alla funzione nella view. L'ho appena fixato, fai pull.", -5),
+      (users[1], 'Confermato, ora funziona alla grande. Dai che per la deadline del 22 giugno abbiamo in mano un AlmostFS perfetto.', -2)
+    ]
+    for user, content, days_offset in web_tech_0_comments:
+      creation_date = today + datetime.timedelta(days=days_offset)
+      new_comment = Comment.objects.create(project=web_technologies_0, user=user, content=content)
+      Comment.objects.filter(id=new_comment.id).update(creation_date=creation_date)
+    self.stdout.write("Created comments between Alessio and Christian.")
 
     self.stdout.write(self.style.SUCCESS('Database successfully reinitialized!'))
