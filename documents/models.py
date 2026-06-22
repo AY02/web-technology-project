@@ -15,8 +15,18 @@ class Document(models.Model):
   # It sets the time at which the entry was updated.
   last_updated_date = models.DateTimeField(auto_now=True)
 
+  def clean(self):
+    super().clean()
+    if self.id and not getattr(self, 'bypass_pending_check', False):
+      if self.pending_edits.filter(state='pen').exists():
+        raise ValidationError('Cannot update the document while there are pending edits. Review them first.')
+
+  def save(self, *args, **kwargs):
+    self.full_clean()
+    super().save(*args, **kwargs)
+
   def __str__(self):
-    return f"Doc: {self.title} (in: {self.project_parent.title})"
+    return f'Doc: {self.title} (in: {self.project_parent.title})'
 
 
 class PendingEdit(models.Model):
@@ -67,7 +77,10 @@ class PendingEdit(models.Model):
     doc = self.document
     doc.title = self.modified_title
     doc.content = self.modified_content
+
+    doc.bypass_pending_check = True
     doc.save()
+    doc.bypass_pending_check = False
 
     self.state = 'acc'
     self.save()
@@ -84,7 +97,7 @@ class PendingEdit(models.Model):
   def clean(self):
     super().clean()
     if self.document.project_parent.owner_id == self.collaborator_id:
-      raise ValidationError("The owner cannot create a PendingEdit since it can edit the document freely.")
+      raise ValidationError('The owner cannot create a PendingEdit since it can edit the document freely.')
 
   def save(self, *args, **kwargs):
     self.full_clean()
@@ -92,5 +105,5 @@ class PendingEdit(models.Model):
 
   def __str__(self):
     # get_state_display() converts the value of state to its associated label.
-    collaborator = self.collaborator.username if self.collaborator else "User deleted"
+    collaborator = self.collaborator.username if self.collaborator else 'User deleted'
     return f"Edit of {collaborator} on '{self.document.title}' [{self.get_state_display()}]"
