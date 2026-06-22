@@ -51,6 +51,20 @@ class Project(models.Model):
   def is_owner(self, user):
     return self.owner == user
   
+  def get_permissions(self):
+    """
+    Returns a list containing the effective permissions for this project, including
+    those inherited from parent projects.
+    """
+    permissions = {}
+    current_project = self
+    while current_project is not None:
+      for perm in current_project.user_permissions.select_related('user', 'project'):
+        if perm.user not in permissions:
+          permissions[perm.user] = perm
+      current_project = current_project.parent
+    return list(permissions.values())
+  
   def bfs(self, include_root=True):
     """
     Performs a breadth-first search (BFS) to find all the IDs of child projects

@@ -32,7 +32,7 @@ def dashboard_view(request, project_id=None):
   current_permissions = None
   if user.is_owner_of(project):
     add_permission_form = AddPermissionForm()
-    current_permissions = project.user_permissions.all().select_related('user')
+    current_permissions = project.get_permissions()
 
   todo_form = None
   if user.can_edit_todolist(project.todolist):
