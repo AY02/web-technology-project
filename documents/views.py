@@ -36,7 +36,14 @@ class DocumentCreateView(LoginRequiredMixin, CreateView):
     form.instance.project_parent = self.project
     messages.success(self.request, f"Document '{form.instance.title}' created.")
     return super().form_valid(form)
-
+  
+  # If we needed to redirect to a static page without dynamic parameters
+  # like a global home page, we would use the class attribute success_url
+  # combined with reverse_lazy to avoid the NoReverseMatch errors during import.
+  # But since in this case, and in the other CBV too, we need the dynamic project id,
+  # therefore we override the get_success_url() method and use the standard reverse(), as
+  # the code is now inside a method, and is therefore executed only at the
+  # proper moment
   def get_success_url(self):
     """Redirecting to the dashboard project after the save."""
     return reverse('dashboard_project', kwargs={'project_id': self.project.id})
