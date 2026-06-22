@@ -35,6 +35,28 @@
 * **Role-Based Participation:** Project discussions are restricted to authorized personnel. Only Project Owners, Collaborators, and designated Commentators can post comments.
 * **Owner Moderation:** Built-in moderation controls allow authors to delete their own messages, while granting the Project Owner rights to delete any comment within their project scope to ensure a safe collaborative environment.
 
+---
+
+## 📸 Screenshots
+
+### Project Dashboard & Navigation
+![Dashboard View](screenshots/dashboard.png)
+*The main project view showing nested subprojects, recent documents, and the asynchronous To-Do list.*
+
+### Smart Permission Management
+![Permissions Modal](screenshots/permissions.png)
+*The access management UI, highlighting the visual distinction between local and inherited user roles.*
+
+### Collaborative Document Review
+![Pending Edits](screenshots/pending-edits.png)
+*The document review interface where project owners can evaluate and accept/reject proposed changes.*
+
+### Live AJAX Search
+![Live Search](screenshots/live-search.png)
+*Discovering public projects dynamically through the real-time search engine.*
+
+---
+
 ## Tech Stack
 
 * **Backend:** Python, Django
