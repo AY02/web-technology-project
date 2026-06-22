@@ -45,7 +45,7 @@
 
 ### Smart Permission Management
 ![Permissions Modal](screenshots/permissions.png)
-*The access management UI, highlighting the visual distinction between local and inherited user roles.*
+*The access management UI, highlighting the user roles.*
 
 ### Collaborative Document Review
 ![Pending Edits](screenshots/pending-edits.png)
