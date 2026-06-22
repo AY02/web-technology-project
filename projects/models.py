@@ -137,6 +137,20 @@ class ProjectPermission(models.Model):
       raise ValidationError('The owner cannot have permissions on its own project.')
     if self.is_view() and self.project.is_public():
       raise ValidationError('Cannot assign the viewer role to a public project.')
+    current_parent = self.project.parent
+    while current_parent is not None:
+      ancestor_permission = ProjectPermission.objects.filter(
+        project=current_parent, 
+        user=self.user
+      ).first()
+      if not ancestor_permission:
+        current_parent = current_parent.parent
+        continue
+      raise ValidationError(
+        f"Unable to assign a role on '{self.project.title}'. "
+        f"The user already inherits the role of '{ancestor_permission.get_role_display()}' "
+        f"from the parent project '{current_parent.title}'."
+      )
     
   def save(self, *args, **kwargs):
     self.full_clean()
