@@ -37,7 +37,7 @@
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 ### Project Dashboard & Navigation
 ![Dashboard View](screenshots/dashboard.png)
@@ -54,6 +54,11 @@
 ### Live AJAX Search
 ![Live Search](screenshots/live-search.png)
 *Discovering public projects dynamically through the real-time search engine.*
+
+## Database Schema (ER Diagram)
+
+![ER Diagram](screenshots/er-diagram.png)
+*The Entity-Relationship diagram illustrating the core database.*
 
 ---
 
