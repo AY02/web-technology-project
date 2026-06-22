@@ -6,42 +6,40 @@
     <div class="overflow-auto" style="max-height: 320px;">
       
       {% for entry in calendar_entries %}
-        {% if not entry.is_completed %}
-          <div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded border {% if entry.is_completed %}bg-light opacity-75{% else %}bg-white shadow-sm{% endif %}">
-            
-            <div class="d-flex align-items-center">
-              <div class="text-center rounded border p-2 bg-light me-3 shadow-sm" style="min-width: 65px;">
-                <span class="d-block fw-bold fs-4 text-dark lh-1">{{ entry.deadline|date:"d" }}</span>
-                <span class="text-uppercase text-primary font-monospace small fw-bold" style="font-size: 0.75rem;">{{ entry.deadline|date:"M" }}</span>
-              </div>
-              
-              <div>
-                <h6 class="mb-1 fw-bold {% if entry.is_completed %}text-decoration-line-through text-muted{% else %}text-dark{% endif %}">
-                  {{ entry.content }}
-                </h6>
-                
-                {% if entry.is_completed %}
-                  <span class="badge bg-success py-1 px-2 small">Completed</span>
-                {% else %}
-                  {% if entry.is_expired %}
-                    <span class="badge bg-danger py-1 px-2 small">Expired</span>
-                  {% else %}
-                    <span class="badge bg-primary py-1 px-2 small">Pending</span>
-                  {% endif %}
-                {% endif %}
-
-                {% if entry.todo.project_parent_id != project.id %}
-                  <a href="{% url 'dashboard_project' entry.todo.project_parent.id %}" class="badge bg-info text-white text-decoration-none py-1 px-2 small ms-1" title="Go to this project">
-                    Inherited from: {{ entry.todo.project_parent.title }}
-                  </a>
-                {% else %}
-                  <span class="badge bg-light text-muted border py-1 px-2 small ms-1">This project</span>
-                {% endif %}
-              </div>
+        <div id="calendar_item_{{ entry.id }}" 
+             class="align-items-center justify-content-between p-3 mb-2 rounded border bg-white shadow-sm 
+                    {% if entry.is_completed %}d-none{% else %}d-flex{% endif %}">
+          
+          <div class="d-flex align-items-center">
+            <div class="text-center rounded border p-2 bg-light me-3 shadow-sm" style="min-width: 65px;">
+              <span class="d-block fw-bold fs-4 text-dark lh-1">{{ entry.deadline|date:"d" }}</span>
+              <span class="text-uppercase text-primary font-monospace small fw-bold" style="font-size: 0.75rem;">{{ entry.deadline|date:"M" }}</span>
             </div>
+            
+            <div>
+              <h6 class="mb-1 fw-bold text-dark">
+                {{ entry.content }}
+              </h6>
+              
+              <span id="calendar_badge_{{ entry.id }}">
+                {% if entry.is_expired %}
+                  <span class="badge bg-danger py-1 px-2 small">Expired</span>
+                {% else %}
+                  <span class="badge bg-primary py-1 px-2 small">Pending</span>
+                {% endif %}
+              </span>
 
+              {% if entry.todo.project_parent_id != project.id %}
+                <a href="{% url 'dashboard_project' entry.todo.project_parent.id %}" class="badge bg-info text-white text-decoration-none py-1 px-2 small ms-1" title="Go to this project">
+                  Inherited from: {{ entry.todo.project_parent.title }}
+                </a>
+              {% else %}
+                <span class="badge bg-light text-muted border py-1 px-2 small ms-1">This project</span>
+              {% endif %}
+            </div>
           </div>
-        {% endif %}
+
+        </div>
       {% empty %}
         <div class="bg-light rounded p-5 text-center border">
           <p class="text-muted fw-bold mb-0">No upcoming deadlines for this project or its subprojects.</p>

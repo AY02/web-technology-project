@@ -16,10 +16,10 @@
                     {% if not todo_form %}disabled{% endif %} 
                     data-entry-id="{{ entry.id }}" onchange="toggleTask(this)">
             
-            <label class="form-check-label w-100 d-block text-break text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}" style="cursor: pointer;">
+            <label id="todo_label_{{ entry.id }}" class="form-check-label w-100 d-block text-break text-muted {% if entry.is_completed %}text-decoration-line-through{% endif %} fw-bold" for="todo_{{ entry.id }}" style="cursor: pointer;">
               {{ entry.content }}
               
-              <div class="d-block mt-1">
+              <div id="todo_badges_{{ entry.id }}" class="d-block mt-1">
                 {% if entry.is_completed %}
                   <small class="badge bg-success fw-normal border">
                     Completed: {{ entry.completion_date|date:"d M Y" }}

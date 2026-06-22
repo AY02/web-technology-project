@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils import timezone
-from django.http import HttpResponse, Http404
+from django.http import JsonResponse, Http404
 from django.core.exceptions import ValidationError
 from .models import ToDoList, ToDoEntry
 from .forms import ToDoEntryForm
@@ -83,6 +83,7 @@ def delete_todo_entry(request, entry_id):
 
 
 @login_required
+@require_POST
 def toggle_todo_entry(request, entry_id):
   """Receive an AJAX request to invert the state 'is_completed' of a task."""
   entry = get_object_or_404(ToDoEntry, id=entry_id)
@@ -90,5 +91,12 @@ def toggle_todo_entry(request, entry_id):
     entry.is_completed = not entry.is_completed
     entry.completion_date = timezone.now() if entry.is_completed else None
     entry.save()
-    return HttpResponse('ok')   
-  return HttpResponse('error', status=403)
+    data = {
+      'status': 'ok',
+      'is_completed': entry.is_completed,
+      'completion_date': entry.completion_date.strftime('%d %b %Y') if entry.completion_date else None,
+      'deadline': entry.deadline.strftime('%d %b %Y') if entry.deadline else None,
+      'is_expired': entry.is_expired()
+    }
+    return JsonResponse(data)
+  return JsonResponse({'status': 'error'}, status=403)
