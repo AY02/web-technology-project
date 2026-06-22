@@ -1,7 +1,8 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 from projects.forms import ProjectCreateForm
 from accounts.models import User
-from projects.models import Project
+from projects.models import Project, ProjectPermission
 
 # Create your tests here.
 class BasicFormValidationTests(TestCase):
@@ -23,3 +24,90 @@ class BasicFormValidationTests(TestCase):
     form = ProjectCreateForm(data=form_data, user=self.user, parent_project=self.root)
     self.assertFalse(form.is_valid()) # Form has to be non valid
     self.assertIn('title', form.errors) # title field needs to be in the error dict
+
+
+# Class for permission hierarchy tests
+class PermissionHierarchyTest(TestCase):
+  
+  def setUp(self):
+    # The idea is to have users and the project tree organized with 
+    # the following structure: Root -> A -> B -> C
+    self.owner = User.objects.create_user(username='owner', password='password')
+    self.other_user = User.objects.create_user(username='collab', password='password')
+    self.root = Project.objects.get(owner=self.owner, parent__isnull=True)
+    
+    # Building the tree chain
+    self.project_a = Project.objects.create(
+      title='Project A', parent=self.root, owner=self.owner
+    )
+    self.project_b = Project.objects.create(
+      title='Project B', parent=self.project_a, owner=self.owner
+    )
+    self.project_c = Project.objects.create(
+      title='Project C', parent=self.project_b, owner=self.owner
+    )
+  
+  # NON BASIC test: this tests that higher level permissions 
+  # "overwrite" lower ones, and that lower-level permissions 
+  # cannot be created if a higher one exists.
+  # First assigns the other_user as a viewer of C, then as a
+  # commentator fo B (which must delete C permissions, who whill then
+  # upward explore its permissions finding B one), then as a
+  # collaborator of A (deletes B and C permissions, which will upward
+  # explore for permissions, finding A's one permission).
+  # Then the viceversa is made, assigning commentator permissions
+  # in B (not allowed), and viewer to C (not allowed), since there
+  # is already a "parent" permission on A
+  def test_cascading_and_blocking_permissions(self):
+    # bottom up permission assignments
+    perm_c = ProjectPermission.objects.create(
+      user=self.other_user, project=self.project_c, role='view'
+    )
+    self.assertTrue(ProjectPermission.objects.filter(id=perm_c.id).exists())
+    self.assertEqual(self.other_user.get_role_in(self.project_c), 'view')
+
+    perm_b = ProjectPermission.objects.create(
+      user=self.other_user, project=self.project_b, role='comm'
+    )
+    self.assertFalse(ProjectPermission.objects.filter(id=perm_c.id).exists())
+    self.assertEqual(self.other_user.get_role_in(self.project_c), 'comm')
+
+    with self.assertRaises(ValidationError) as context_c_intermediate:
+      ProjectPermission.objects.create(
+        user=self.other_user, project=self.project_c, role='view'
+      )
+    self.assertIn(
+      "The user already inherits the role of 'Commentator'", 
+      str(context_c_intermediate.exception)
+    )
+
+    perm_a = ProjectPermission.objects.create(
+      user=self.other_user, project=self.project_a, role='coll'
+    )
+    self.assertFalse(ProjectPermission.objects.filter(id=perm_b.id).exists())
+    self.assertEqual(self.other_user.get_role_in(self.project_b), 'coll')
+    self.assertEqual(self.other_user.get_role_in(self.project_c), 'coll')
+
+    # top down permission assignments
+    with self.assertRaises(ValidationError) as context_b:
+      ProjectPermission.objects.create(
+        user=self.other_user, project=self.project_b, role='comm'
+      )
+    self.assertIn(
+      "The user already inherits the role of 'Collaborator'", 
+      str(context_b.exception)
+    )
+    self.assertEqual(self.other_user.get_role_in(self.project_b), 'coll')
+    self.assertEqual(self.other_user.get_role_in(self.project_c), 'coll')
+
+    with self.assertRaises(ValidationError) as context_c:
+      ProjectPermission.objects.create(
+        user=self.other_user, project=self.project_c, role='view'
+      )
+    self.assertIn(
+      "The user already inherits the role of 'Collaborator'", 
+      str(context_c.exception)
+    )
+    self.assertEqual(self.other_user.get_role_in(self.project_b), 'coll')
+    self.assertEqual(self.other_user.get_role_in(self.project_c), 'coll')
+    
