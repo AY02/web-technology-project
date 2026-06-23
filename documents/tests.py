@@ -87,8 +87,8 @@ class PendingEditWorkflowTests(TestCase):
     # Checking that the request was successful, and verifying the
     # outcome on the database models
     self.assertEqual(response_owner.status_code, 200)
-    pending_edit.refresh_from_db()
-    self.doc.refresh_from_db()
+    self.doc = Document.objects.get(id=self.doc.id)
+    pending_edit = PendingEdit.objects.get(document=self.doc)
     self.assertEqual(pending_edit.state, 'acc')
     self.assertEqual(self.doc.title, 'New Title')
     self.assertEqual(self.doc.content, 'New Content')

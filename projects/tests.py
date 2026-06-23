@@ -71,7 +71,7 @@ class PermissionHierarchyTest(TestCase):
     )
     self.assertFalse(ProjectPermission.objects.filter(id=perm_c.id).exists())
     self.assertEqual(self.other_user.get_role_in(self.project_c), 'comm')
-
+    
     with self.assertRaises(ValidationError) as context_c_intermediate:
       ProjectPermission.objects.create(
         user=self.other_user, project=self.project_c, role='view'
@@ -88,7 +88,7 @@ class PermissionHierarchyTest(TestCase):
     self.assertEqual(self.other_user.get_role_in(self.project_b), 'coll')
     self.assertEqual(self.other_user.get_role_in(self.project_c), 'coll')
 
-    # top down permission assignments
+    # subproject permission assignments
     with self.assertRaises(ValidationError) as context_b:
       ProjectPermission.objects.create(
         user=self.other_user, project=self.project_b, role='comm'

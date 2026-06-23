@@ -96,7 +96,7 @@
         <h5 class="modal-title fw-bold">Delete Project</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="post" action="{% url 'delete_project' project.id %}">
+      <form method="POST" action="{% url 'delete_project' project.id %}">
         {% csrf_token %}
         <div class="modal-body p-4 text-center">
           <p class="mb-1 text-danger">Are you absolutely sure?</p>
@@ -184,14 +184,14 @@
               
               <div class="d-flex align-items-center">
                 {% if perm.project == project %}
-                  <form method="POST" action="{% url 'remove_permission' project.id perm.id %}" class="m-0 p-0" onsubmit="return confirm('Revoke access for {{ perm.user.username }}?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-danger border-0 p-1" title="Remove Access">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
-                        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
-                      </svg>
-                    </button>
-                  </form>
+                  <button type="button" class="btn btn-sm btn-outline-danger border-0 p-1" 
+                          data-revoke-url="{% url 'remove_permission' project.id perm.id %}"
+                          data-username="{{ perm.user.username }}"
+                          onclick="openRevokeModal(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                      <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+                    </svg>
+                  </button>
                 {% else %}
                   <a href="{% url 'dashboard_project' perm.project.id %}" class="btn btn-sm btn-outline-secondary border-0 p-1" title="Go to {{ perm.project.title }} to edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16">
