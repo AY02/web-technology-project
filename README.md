@@ -5,7 +5,9 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
-**AlmostFS** is a hierarchical project management web application built with Django. It features a file system-based structure, an advanced role-inheritance permission engine, asynchronous task management, and a collaborative document review workflow.
+**AlmostFS** is a hierarchical project management web application built with Django. It features a file system-based structure, an advanced role-inheritance permission engine, asynchronous task management, and a collaborative document review workflow.  
+**Note:** Before program execution, use the personalized command `resetdb` to instantiate the example data:  
+`python3 manage.py resetdb && python3 manage.py runserver`
 
 ## Key Features
 
