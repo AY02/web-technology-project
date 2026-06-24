@@ -42,7 +42,7 @@ def dashboard_view(request, project_id=None):
 
   calendar_entries = ToDoEntry.objects.filter(
     todo__project_parent_id__in=project.bfs(), deadline__isnull=False
-  ).select_related('todo__project_parent').order_by('deadline')
+  ).select_related('todo__project_parent')
 
   context = {
     'project': project,

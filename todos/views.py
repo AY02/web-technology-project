@@ -99,4 +99,4 @@ def toggle_todo_entry(request, entry_id):
       'is_expired': entry.is_expired()
     }
     return JsonResponse(data)
-  return JsonResponse({'status': 'error'}, status=403)
+  return JsonResponse({'status': 'error'}, status=404)
