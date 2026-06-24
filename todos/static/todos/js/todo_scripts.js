@@ -35,11 +35,10 @@ function toggleTask(checkboxElem) {
     headers: {
       'X-CSRFToken': csrfToken,
       'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
     }
-  })
-  .then(response => response.json())
-  .then(data => {
+  }) // asynchronous fetch, returnes a Promise
+  .then(response => response.json()) // convert the response in the JSON
+  .then(data => { // the data is the json
     if (data.status === 'ok') {
       updateUIWithoutReload(entryId, data);
     } else {
