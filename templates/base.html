@@ -35,6 +35,34 @@
                 <button type="submit" class="nav-link text-danger bg-transparent border-0">Log Out</button>
               </form>
             </li>
+            <li class="nav-item">
+              <div class="dropdown me-3">
+                <button class="btn bg-transparent text-white position-relative border-0 opacity-75" type="button" data-bs-toggle="dropdown" onmouseover="this.classList.remove('opacity-75')" onmouseout="this.classList.add('opacity-75')">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bell-fill" viewBox="0 0 16 16">
+                    <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z"/>
+                  </svg>
+                  
+                  <span id="notif-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light {% if unread_count == 0 %}d-none{% endif %}" style="font-size: 0.65rem;">
+                    {{ unread_count|default:"0" }}
+                  </span>
+                </button>
+                
+                <ul id="notif-list" class="dropdown-menu dropdown-menu-end shadow-lg border border-secondary-subtle mt-2" style="width: 320px;">
+                  <li><h6 class="dropdown-header fw-bold text-uppercase small">Notifications</h6></li>
+                  
+                  {% for notif in unread_notifications %}
+                    <li>
+                      <a class="dropdown-item text-wrap border-bottom py-2 custom-hover" href="{% url 'read_notification' notif.id %}">
+                        <small class="text-dark fw-bold d-block lh-sm mb-1">{{ notif.message }}</small>
+                        <small class="text-muted" style="font-size: 0.70rem;">{{ notif.created_at|timesince }} ago</small>
+                      </a>
+                    </li>
+                  {% empty %}
+                    <li><span id="no-notif-msg" class="dropdown-item text-muted small py-3 text-center">No new notifications</span></li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </li>
           {% else %}
             <li class="nav-item">
               <a class="nav-link" href="{% url 'login' %}">Log In</a>
@@ -76,5 +104,45 @@
       });
     });
   </script>
+
+{% if user.is_authenticated %}
+  <script>
+  // Web Socket message notifications 
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const notifSocket = new WebSocket(
+    wsScheme + '://' + window.location.host + '/ws/notifications/'
+  );
+
+  notifSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    
+    // Update the badge count dynamically
+    const badge = document.getElementById('notif-badge');
+    let currentCount = parseInt(badge.innerText) || 0;
+    badge.innerText = currentCount + 1;
+    badge.classList.remove('d-none'); // Make sure it's visible
+    
+    // Remove the no notifications placeholder if there are any
+    const noNotifMsg = document.getElementById('no-notif-msg');
+    if(noNotifMsg) noNotifMsg.remove();
+    
+    // Creating the new dropdown item
+    const notifList = document.getElementById('notif-list');
+    const newLi = document.createElement("li");
+    
+    // New html with url
+    newLi.innerHTML = `
+      <a class="dropdown-item text-wrap border-bottom py-2 custom-hover" href="${data.url}">
+        <small class="text-dark fw-bold d-block lh-sm mb-1">
+          <strong class="text-primary">⚡ New:</strong> ${data.message}
+        </small>
+        <small class="text-muted" style="font-size: 0.70rem;">Just now</small>
+      </a>
+    `;
+    
+    notifList.insertBefore(newLi, notifList.children[1]);
+  };
+</script>
+{% endif %}
 </body>
 </html>

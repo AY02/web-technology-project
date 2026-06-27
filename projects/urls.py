@@ -6,7 +6,8 @@ from .views import (
   add_permission,
   remove_permission,
   search_public_projects,
-  SharedProjectsListView
+  SharedProjectsListView,
+  read_notification,
 )
 
 
@@ -19,5 +20,6 @@ urlpatterns = [
   path('shared_with_me/', SharedProjectsListView.as_view(), name='shared_projects'),
   
   # API Live Search
-  path('search/public/', search_public_projects, name='search_public_projects')
+  path('search/public/', search_public_projects, name='search_public_projects'),
+  path('notification/<int:notif_id>/read/', read_notification, name='read_notification'),
 ]

@@ -7,7 +7,7 @@ from django.http import JsonResponse, Http404
 from django.core.exceptions import ValidationError
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import Project, ProjectPermission
+from .models import Project, ProjectPermission, Notification
 from .forms import ProjectCreateForm, ProjectEditForm, AddPermissionForm
 
 
@@ -197,3 +197,18 @@ class SharedProjectsListView(LoginRequiredMixin, ListView):
     return ProjectPermission.objects.filter(
       user=self.request.user
     ).select_related('project', 'project__owner').order_by('-project__creation_date')
+  
+
+@login_required
+def read_notification(request, notif_id):
+  # Get the specific notification for the logged-in user
+  notif = get_object_or_404(Notification, id=notif_id, recipient=request.user)
+  
+  # Mark as read and save
+  notif.is_read = True
+  notif.save()
+  
+  # Redirect to the project dashboard if it exists, otherwise home
+  if notif.project:
+    return redirect('dashboard_project', project_id=notif.project.id)
+  return redirect('dashboard')

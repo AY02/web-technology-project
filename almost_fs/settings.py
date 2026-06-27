@@ -31,6 +31,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,13 +73,22 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'projects.context_processors.notifications_processor',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'almost_fs.wsgi.application'
+ASGI_APPLICATION = 'almost_fs.asgi.application'
 
+
+# Channel Layer
+CHANNEL_LAYERS = {
+  "default": {
+    "BACKEND": "channels.layers.InMemoryChannelLayer"
+  }
+}
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

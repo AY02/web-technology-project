@@ -51,16 +51,19 @@ class Project(models.Model):
   def is_owner(self, user):
     return self.owner == user
   
-  def get_permissions(self):
+  def get_permissions(self, allowed_roles=None):
     """
     Returns a list containing the effective permissions for this project, including
     those inherited from parent projects.
+    If allowed_roles is provided (like ['comm', 'coll'], it filter the results)
     """
     permissions = {}
     current_project = self
     while current_project is not None:
       for perm in current_project.user_permissions.select_related('user', 'project'):
         if perm.user not in permissions:
+          if allowed_roles is not None and perm.role not in allowed_roles:
+            continue
           permissions[perm.user] = perm
       current_project = current_project.parent
     return list(permissions.values())
@@ -182,3 +185,27 @@ class ProjectPermission(models.Model):
   def __str__(self):
     # self.get_role_display(): view ==> Viewer
     return f'{self.user.username} - {self.get_role_display()} on {self.project.title} (Owner: {self.project.owner.username})'
+  
+
+# Notification model to keep updates not already seen
+class Notification(models.Model):
+  recipient = models.ForeignKey(
+    settings.AUTH_USER_MODEL, 
+    on_delete=models.CASCADE, 
+    related_name='notifications'
+  )
+  message = models.CharField(max_length=255)
+  project = models.ForeignKey(
+    'projects.Project', 
+    on_delete=models.CASCADE, 
+    null=True, 
+    blank=True
+  )
+  is_read = models.BooleanField(default=False)
+  created_at = models.DateTimeField(auto_now_add=True)
+
+  class Meta:
+    ordering = ['-created_at']
+
+  def __str__(self):
+    return f"Notification for {self.recipient.username}"
